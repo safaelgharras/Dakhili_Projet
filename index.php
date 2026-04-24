@@ -1,5 +1,5 @@
 <?php
 require "config/DataBase.php";
 
-echo "Database connected successfully ✅";
+echo "Database connected successfully ";
 ?>

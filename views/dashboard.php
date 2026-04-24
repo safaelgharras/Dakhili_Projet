@@ -20,5 +20,9 @@ if (!isset($_SESSION["user_id"])) {
 
 <a href="logout.php">Logout</a>
 
+<a href="institutions.php">View Schools</a>
+
+<a href="saved_schools.php"> My Saved Schools</a>
+
 </body>
 </html>
