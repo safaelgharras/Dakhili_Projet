@@ -1,5 +1,6 @@
 <?php
-session_start();
+$pageTitle = "Dashboard";
+require "../includes/header.php";
 
 if (!isset($_SESSION["user_id"])) {
     header("Location: login.php");
@@ -7,22 +8,29 @@ if (!isset($_SESSION["user_id"])) {
 }
 ?>
 
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Dashboard</title>
-</head>
-<body>
+<div class="dashboard-welcome">
+    <h2>Welcome, <?php echo htmlspecialchars($_SESSION["user_name"]); ?> 👋</h2>
+    <p>This is your Dakhili dashboard. Explore schools, get AI recommendations, and plan your future.</p>
+</div>
 
-<h2>Welcome <?php echo $_SESSION["user_name"]; ?> 👋</h2>
+<div class="dashboard-links">
+    <a href="institutions.php" class="dash-card">
+        <div class="icon">🏫</div>
+        <h3>Browse Schools</h3>
+        <p>Explore all available institutions</p>
+    </a>
 
-<p>This is your dashboard</p>
+    <a href="saved_schools.php" class="dash-card">
+        <div class="icon">⭐</div>
+        <h3>Saved Schools</h3>
+        <p>View your saved institutions</p>
+    </a>
 
-<a href="logout.php">Logout</a>
+    <a href="ai_form.php" class="dash-card">
+        <div class="icon">🤖</div>
+        <h3>AI Orientation</h3>
+        <p>Get personalized recommendations</p>
+    </a>
+</div>
 
-<a href="institutions.php">View Schools</a>
-
-<a href="saved_schools.php"> My Saved Schools</a>
-
-</body>
-</html>
+<?php require "../includes/footer.php"; ?>

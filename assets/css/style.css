@@ -1,0 +1,566 @@
+/* ============================================
+   Dakhili — Main Stylesheet
+   Moroccan University Orientation Platform
+   ============================================ */
+
+/* ===== Reset & Base ===== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f0f2f5;
+    color: #333;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+/* ===== Navbar ===== */
+.navbar {
+    background: linear-gradient(135deg, #1a7a4c, #2ecc71);
+    padding: 0 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.nav-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 60px;
+}
+
+.nav-logo {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 1px;
+}
+
+.nav-links {
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.nav-links li a {
+    color: #fff;
+    padding: 8px 14px;
+    border-radius: 6px;
+    transition: background 0.3s;
+    font-size: 0.95rem;
+}
+
+.nav-links li a:hover {
+    background: rgba(255,255,255,0.2);
+}
+
+.nav-user {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #fff;
+    margin-left: 10px;
+    padding-left: 10px;
+    border-left: 1px solid rgba(255,255,255,0.3);
+}
+
+.nav-user span {
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+.btn-logout {
+    background: rgba(255,255,255,0.15);
+    color: #fff !important;
+    padding: 6px 12px !important;
+    border-radius: 6px;
+    font-size: 0.85rem !important;
+    transition: background 0.3s;
+}
+
+.btn-logout:hover {
+    background: rgba(231, 76, 60, 0.8);
+}
+
+.btn-register {
+    background: #fff !important;
+    color: #1a7a4c !important;
+    font-weight: 600;
+    border-radius: 6px;
+}
+
+.btn-register:hover {
+    background: #e8f5e9 !important;
+}
+
+/* ===== Main Content ===== */
+.main-content {
+    flex: 1;
+    max-width: 1200px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 30px 20px;
+}
+
+/* ===== Page Titles ===== */
+.page-title {
+    font-size: 1.8rem;
+    color: #1a7a4c;
+    margin-bottom: 25px;
+    padding-bottom: 10px;
+    border-bottom: 3px solid #2ecc71;
+}
+
+/* ===== Cards Grid ===== */
+.cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 20px;
+}
+
+.card {
+    background: #fff;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    transition: transform 0.2s, box-shadow 0.2s;
+    border-left: 4px solid #2ecc71;
+}
+
+.card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+}
+
+.card h3 {
+    color: #1a7a4c;
+    font-size: 1.15rem;
+    margin-bottom: 10px;
+}
+
+.card p {
+    color: #555;
+    font-size: 0.9rem;
+    margin-bottom: 6px;
+    line-height: 1.5;
+}
+
+.card .label {
+    font-weight: 600;
+    color: #333;
+}
+
+.card .badge {
+    display: inline-block;
+    background: #e8f5e9;
+    color: #1a7a4c;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-top: 5px;
+}
+
+.card .requirements {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #eee;
+    font-size: 0.85rem;
+    color: #777;
+}
+
+/* ===== Buttons ===== */
+.btn {
+    display: inline-block;
+    padding: 8px 18px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.3s;
+    text-align: center;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #1a7a4c, #2ecc71);
+    color: #fff;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #15633e, #27ae60);
+    box-shadow: 0 3px 10px rgba(46,204,113,0.3);
+}
+
+.btn-save {
+    background: #fff;
+    color: #f39c12;
+    border: 2px solid #f39c12;
+    font-size: 0.85rem;
+    padding: 6px 14px;
+    margin-top: 10px;
+}
+
+.btn-save:hover {
+    background: #f39c12;
+    color: #fff;
+}
+
+.btn-danger {
+    background: #fff;
+    color: #e74c3c;
+    border: 2px solid #e74c3c;
+    font-size: 0.85rem;
+    padding: 6px 14px;
+    margin-top: 10px;
+}
+
+.btn-danger:hover {
+    background: #e74c3c;
+    color: #fff;
+}
+
+/* ===== Forms ===== */
+.form-container {
+    max-width: 450px;
+    margin: 20px auto;
+    background: #fff;
+    padding: 35px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+}
+
+.form-container h2 {
+    text-align: center;
+    color: #1a7a4c;
+    margin-bottom: 25px;
+    font-size: 1.5rem;
+}
+
+.form-group {
+    margin-bottom: 18px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 6px;
+    color: #555;
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 10px 14px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    transition: border-color 0.3s;
+    outline: none;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    border-color: #2ecc71;
+}
+
+.form-container .btn {
+    width: 100%;
+    padding: 12px;
+    font-size: 1rem;
+    margin-top: 5px;
+}
+
+.form-footer {
+    text-align: center;
+    margin-top: 18px;
+    font-size: 0.9rem;
+    color: #777;
+}
+
+.form-footer a {
+    color: #1a7a4c;
+    font-weight: 600;
+}
+
+.form-footer a:hover {
+    text-decoration: underline;
+}
+
+/* ===== Messages ===== */
+.msg {
+    padding: 12px 18px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.msg-success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.msg-error {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+/* ===== Dashboard ===== */
+.dashboard-welcome {
+    background: linear-gradient(135deg, #1a7a4c, #2ecc71);
+    color: #fff;
+    padding: 30px;
+    border-radius: 12px;
+    margin-bottom: 25px;
+}
+
+.dashboard-welcome h2 {
+    font-size: 1.6rem;
+    margin-bottom: 8px;
+}
+
+.dashboard-welcome p {
+    opacity: 0.9;
+    font-size: 1rem;
+}
+
+.dashboard-links {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 16px;
+    margin-top: 20px;
+}
+
+.dash-card {
+    background: #fff;
+    padding: 25px;
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.dash-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.1);
+}
+
+.dash-card .icon {
+    font-size: 2.2rem;
+    margin-bottom: 10px;
+}
+
+.dash-card h3 {
+    color: #1a7a4c;
+    font-size: 1.05rem;
+    margin-bottom: 6px;
+}
+
+.dash-card p {
+    color: #888;
+    font-size: 0.85rem;
+}
+
+/* ===== Empty State ===== */
+.empty-state {
+    text-align: center;
+    padding: 50px 20px;
+    color: #999;
+}
+
+.empty-state .icon {
+    font-size: 3rem;
+    margin-bottom: 15px;
+}
+
+.empty-state p {
+    font-size: 1.1rem;
+}
+
+/* ===== Hero Section (Landing Page) ===== */
+.hero {
+    text-align: center;
+    padding: 80px 20px;
+    background: linear-gradient(135deg, #1a7a4c, #2ecc71);
+    color: #fff;
+    border-radius: 0 0 30px 30px;
+    margin: -30px -20px 30px -20px;
+}
+
+.hero h1 {
+    font-size: 2.5rem;
+    margin-bottom: 15px;
+}
+
+.hero p {
+    font-size: 1.15rem;
+    opacity: 0.9;
+    margin-bottom: 30px;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.hero-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+
+.btn-hero {
+    padding: 12px 30px;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+.btn-hero-primary {
+    background: #fff;
+    color: #1a7a4c;
+}
+
+.btn-hero-primary:hover {
+    background: #e8f5e9;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.btn-hero-secondary {
+    background: transparent;
+    color: #fff;
+    border: 2px solid #fff;
+}
+
+.btn-hero-secondary:hover {
+    background: rgba(255,255,255,0.15);
+}
+
+/* ===== Search & Filters ===== */
+.search-bar {
+    background: #fff;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    margin-bottom: 20px;
+}
+
+.search-input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.3s;
+    margin-bottom: 12px;
+}
+
+.search-input:focus {
+    border-color: #2ecc71;
+}
+
+.filters {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.filter-select {
+    flex: 1;
+    min-width: 150px;
+    padding: 10px 14px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    outline: none;
+    background: #fff;
+    transition: border-color 0.3s;
+    cursor: pointer;
+}
+
+.filter-select:focus {
+    border-color: #2ecc71;
+}
+
+.results-count {
+    color: #888;
+    font-size: 0.9rem;
+    margin-bottom: 15px;
+    font-weight: 500;
+}
+
+/* ===== Saved Badge ===== */
+.badge-saved {
+    display: inline-block;
+    background: #d4edda;
+    color: #155724;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-top: 10px;
+}
+
+/* ===== Footer ===== */
+.footer {
+    background: #2c3e50;
+    color: #aaa;
+    text-align: center;
+    padding: 20px;
+    margin-top: auto;
+    font-size: 0.85rem;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+    .nav-container {
+        flex-direction: column;
+        height: auto;
+        padding: 10px 0;
+        gap: 8px;
+    }
+
+    .nav-links {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 5px;
+    }
+
+    .hero h1 {
+        font-size: 1.8rem;
+    }
+
+    .hero-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .cards-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .dashboard-links {
+        grid-template-columns: 1fr;
+    }
+}

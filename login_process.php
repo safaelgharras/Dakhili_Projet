@@ -4,7 +4,7 @@ require "config/DataBase.php";
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
-    $email = $_POST["email"];
+    $email = trim($_POST["email"]);
     $password = $_POST["password"];
 
     $sql = "SELECT * FROM students WHERE email = ?";
@@ -18,11 +18,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $_SESSION["user_id"] = $user["id"];
         $_SESSION["user_name"] = $user["name"];
 
-      header("Location: views/dashboard.php");
+        header("Location: views/dashboard.php");
         exit();
         
     } else {
-        echo "Invalid email or password ";
+        header("Location: views/login.php?error=Invalid email or password");
+        exit();
     }
 }
 ?>

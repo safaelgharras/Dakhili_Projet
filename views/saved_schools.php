@@ -1,5 +1,6 @@
 <?php
-session_start();
+$pageTitle = "Saved Schools";
+require "../includes/header.php";
 require "../config/DataBase.php";
 
 if (!isset($_SESSION["user_id"])) {
@@ -17,37 +18,41 @@ $sql = "SELECT institutions.*
 
 $stmt = $pdo->prepare($sql);
 $stmt->execute([$student_id]);
-
 $schools = $stmt->fetchAll();
 ?>
 
-<!DOCTYPE html>
-<html>
-<head>
-    <title>My Saved Schools</title>
-</head>
-<body>
+<h1 class="page-title">⭐ My Saved Schools</h1>
 
-<h2>⭐ My Saved Schools</h2>
+<?php if (isset($_GET['success'])): ?>
+    <div class="msg msg-success"><?php echo htmlspecialchars($_GET['success']); ?></div>
+<?php endif; ?>
 
-<?php if(count($schools) == 0){ ?>
-    <p>No saved schools yet.</p>
-<?php } ?>
+<?php if (isset($_GET['error'])): ?>
+    <div class="msg msg-error"><?php echo htmlspecialchars($_GET['error']); ?></div>
+<?php endif; ?>
 
-<?php foreach($schools as $s){ ?>
-
-    <div style="border:1px solid black; margin:10px; padding:10px;">
-        
-        <h3><?php echo $s["name"]; ?></h3>
-        <p>City: <?php echo $s["city"]; ?></p>
-        <p>Type: <?php echo $s["type"]; ?></p>
-        <p>Min Average: <?php echo $s["min_average"]; ?></p>
-        <p><?php echo $s["description"]; ?></p>
-        <p><b>Requirements:</b> <?php echo $s["requirements"]; ?></p>
-
+<?php if (count($schools) == 0): ?>
+    <div class="empty-state">
+        <div class="icon">📭</div>
+        <p>You haven't saved any schools yet.</p>
+        <a href="institutions.php" class="btn btn-primary" style="margin-top:15px;">Browse Schools</a>
     </div>
+<?php else: ?>
+    <div class="cards-grid">
+        <?php foreach($schools as $s): ?>
+            <div class="card">
+                <h3><?php echo htmlspecialchars($s["name"]); ?></h3>
+                <p><span class="label">City:</span> <?php echo htmlspecialchars($s["city"]); ?></p>
+                <p><span class="label">Type:</span> <span class="badge"><?php echo htmlspecialchars($s["type"]); ?></span></p>
+                <p><span class="label">Min Average:</span> <?php echo htmlspecialchars($s["min_average"]); ?>/20</p>
+                <p><?php echo htmlspecialchars($s["description"]); ?></p>
+                <div class="requirements">
+                    <span class="label">Requirements:</span> <?php echo htmlspecialchars($s["requirements"]); ?>
+                </div>
+                <a href="../remove_school.php?id=<?php echo $s['id']; ?>" class="btn btn-danger" onclick="return confirm('Remove this school?');">❌ Remove</a>
+            </div>
+        <?php endforeach; ?>
+    </div>
+<?php endif; ?>
 
-<?php } ?>
-
-</body>
-</html>
+<?php require "../includes/footer.php"; ?>

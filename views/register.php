@@ -1,30 +1,60 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register</title>
-</head>
-<body>
-    
-    <h2>Student Register</h2>
+<?php
+$pageTitle = "Register";
+require "../includes/header.php";
+?>
+
+<div class="form-container">
+    <h2>📝 Student Registration</h2>
+
+    <?php if (isset($_GET['error'])): ?>
+        <div class="msg msg-error"><?php echo htmlspecialchars($_GET['error']); ?></div>
+    <?php endif; ?>
 
     <form method="POST" action="../register_process.php">
+        <div class="form-group">
+            <label>Full Name</label>
+            <input type="text" name="name" placeholder="Mohammed Alami" required>
+        </div>
 
-        <input type="text" name="name" placeholder="Full name" required><br><br>
+        <div class="form-group">
+            <label>Email</label>
+            <input type="email" name="email" placeholder="your@email.com" required>
+        </div>
 
-        <input type="email" name="email" placeholder="Email" required><br><br>
+        <div class="form-group">
+            <label>Password</label>
+            <input type="password" name="password" placeholder="••••••••" required>
+        </div>
 
-        <input type="password" name="password" placeholder="Password" required><br><br>
+        <div class="form-group">
+            <label>Bac Branch</label>
+            <select name="bac_branch" required>
+                <option value="">-- Select --</option>
+                <option value="SVT">Sciences de la Vie et de la Terre (SVT)</option>
+                <option value="PC">Physique-Chimie (PC)</option>
+                <option value="Math">Sciences Mathématiques</option>
+                <option value="Eco">Sciences Économiques</option>
+                <option value="Tech">Sciences et Technologies</option>
+                <option value="Lettres">Lettres et Sciences Humaines</option>
+            </select>
+        </div>
 
-        <input type="text" name="bac_branch" placeholder="Bac branch" required><br><br>
+        <div class="form-group">
+            <label>Bac Average</label>
+            <input type="number" step="0.01" name="average" placeholder="14.50" min="0" max="20" required>
+        </div>
 
-        <input type="number" step="0.01" name="average" placeholder="Average"><br><br>
+        <div class="form-group">
+            <label>City</label>
+            <input type="text" name="city" placeholder="Casablanca" required>
+        </div>
 
-        <input type="text" name="city" placeholder="City"><br><br>
-
-        <button type="submit">Register</button>
+        <button type="submit" class="btn btn-primary">Register</button>
     </form>
 
-</body>
-</html>
+    <div class="form-footer">
+        <p>Already have an account? <a href="login.php">Login here</a></p>
+    </div>
+</div>
+
+<?php require "../includes/footer.php"; ?>

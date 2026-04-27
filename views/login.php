@@ -1,21 +1,36 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Login</title>
-</head>
-<body>
+<?php
+$pageTitle = "Login";
+require "../includes/header.php";
+?>
 
-<h2>Login</h2>
+<div class="form-container">
+    <h2>🔐 Login</h2>
 
-<form method="POST" action="../login_process.php">
+    <?php if (isset($_GET['error'])): ?>
+        <div class="msg msg-error"><?php echo htmlspecialchars($_GET['error']); ?></div>
+    <?php endif; ?>
 
-    <input type="email" name="email" placeholder="Email" required><br><br>
+    <?php if (isset($_GET['success'])): ?>
+        <div class="msg msg-success"><?php echo htmlspecialchars($_GET['success']); ?></div>
+    <?php endif; ?>
 
-    <input type="password" name="password" placeholder="Password" required><br><br>
+    <form method="POST" action="../login_process.php">
+        <div class="form-group">
+            <label>Email</label>
+            <input type="email" name="email" placeholder="your@email.com" required>
+        </div>
 
-    <button type="submit">Login</button>
+        <div class="form-group">
+            <label>Password</label>
+            <input type="password" name="password" placeholder="••••••••" required>
+        </div>
 
-</form>
+        <button type="submit" class="btn btn-primary">Login</button>
+    </form>
 
-</body>
-</html>
+    <div class="form-footer">
+        <p>Don't have an account? <a href="register.php">Register here</a></p>
+    </div>
+</div>
+
+<?php require "../includes/footer.php"; ?>
