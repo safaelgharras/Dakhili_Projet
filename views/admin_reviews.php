@@ -1,0 +1,109 @@
+<?php
+$pageTitle = "Admin — Avis";
+require "../includes/header.php";
+require "../config/DataBase.php";
+
+// Simple admin check (in a real app, use roles)
+// For now, allow any logged-in user to access admin
+// You can restrict this later by adding an 'is_admin' column to students
+if (!isset($_SESSION["user_id"])) {
+    header("Location: login.php");
+    exit();
+}
+
+// Handle approve/reject actions
+if (isset($_GET['approve']) && is_numeric($_GET['approve'])) {
+    $stmt = $pdo->prepare("UPDATE reviews SET status = 'approved' WHERE id = ?");
+    $stmt->execute([(int)$_GET['approve']]);
+    header("Location: admin_reviews.php?success=Avis approuvé");
+    exit();
+}
+
+if (isset($_GET['reject']) && is_numeric($_GET['reject'])) {
+    $stmt = $pdo->prepare("DELETE FROM reviews WHERE id = ?");
+    $stmt->execute([(int)$_GET['reject']]);
+    header("Location: admin_reviews.php?success=Avis supprimé");
+    exit();
+}
+
+// Get all pending reviews
+$pendingSql = "SELECT reviews.*, students.name AS author_name, institutions.name AS school_name
+               FROM reviews 
+               JOIN students ON reviews.student_id = students.id
+               JOIN institutions ON reviews.institution_id = institutions.id
+               WHERE reviews.status = 'pending'
+               ORDER BY reviews.created_at DESC";
+$pendingStmt = $pdo->query($pendingSql);
+$pendingReviews = $pendingStmt->fetchAll();
+
+// Get all approved reviews
+$approvedSql = "SELECT reviews.*, students.name AS author_name, institutions.name AS school_name
+                FROM reviews 
+                JOIN students ON reviews.student_id = students.id
+                JOIN institutions ON reviews.institution_id = institutions.id
+                WHERE reviews.status = 'approved'
+                ORDER BY reviews.created_at DESC
+                LIMIT 20";
+$approvedStmt = $pdo->query($approvedSql);
+$approvedReviews = $approvedStmt->fetchAll();
+?>
+
+<h1 class="page-title">🛡️ Gestion des avis</h1>
+
+<?php if (isset($_GET['success'])): ?>
+    <div class="msg msg-success"><?php echo htmlspecialchars($_GET['success']); ?></div>
+<?php endif; ?>
+
+<!-- Pending Reviews -->
+<h2 style="font-size:1.1rem; color:var(--navy); margin-bottom:12px;">
+    ⏳ En attente (<?php echo count($pendingReviews); ?>)
+</h2>
+
+<?php if (count($pendingReviews) == 0): ?>
+    <div class="msg" style="background:var(--orange-light); color:var(--orange-dark);">
+        Aucun avis en attente de validation.
+    </div>
+<?php else: ?>
+    <?php foreach($pendingReviews as $rev): ?>
+        <div class="review-item" style="border-left:4px solid var(--orange);">
+            <div class="review-header">
+                <div>
+                    <span class="review-author">👤 <?php echo htmlspecialchars($rev["author_name"]); ?></span>
+                    <span style="color:var(--text-muted); font-size:0.8rem;"> → <?php echo htmlspecialchars($rev["school_name"]); ?></span>
+                </div>
+                <span class="review-date"><?php echo date("d/m/Y H:i", strtotime($rev["created_at"])); ?></span>
+            </div>
+            <div class="review-content" style="margin-bottom:12px;">
+                <?php echo htmlspecialchars($rev["content"]); ?>
+            </div>
+            <div class="card-actions">
+                <a href="admin_reviews.php?approve=<?php echo $rev['id']; ?>" class="btn btn-primary" style="background:#27ae60;">✅ Approuver</a>
+                <a href="admin_reviews.php?reject=<?php echo $rev['id']; ?>" class="btn btn-danger" onclick="return confirm('Supprimer cet avis ?');">❌ Rejeter</a>
+            </div>
+        </div>
+    <?php endforeach; ?>
+<?php endif; ?>
+
+<!-- Approved Reviews -->
+<h2 style="font-size:1.1rem; color:var(--navy); margin:25px 0 12px;">
+    ✅ Approuvés (<?php echo count($approvedReviews); ?>)
+</h2>
+
+<?php if (count($approvedReviews) == 0): ?>
+    <p style="color:var(--text-muted); font-size:0.85rem;">Aucun avis approuvé.</p>
+<?php else: ?>
+    <?php foreach($approvedReviews as $rev): ?>
+        <div class="review-item">
+            <div class="review-header">
+                <div>
+                    <span class="review-author">👤 <?php echo htmlspecialchars($rev["author_name"]); ?></span>
+                    <span style="color:var(--text-muted); font-size:0.8rem;"> → <?php echo htmlspecialchars($rev["school_name"]); ?></span>
+                </div>
+                <span class="review-date"><?php echo date("d/m/Y", strtotime($rev["created_at"])); ?></span>
+            </div>
+            <div class="review-content"><?php echo htmlspecialchars($rev["content"]); ?></div>
+        </div>
+    <?php endforeach; ?>
+<?php endif; ?>
+
+<?php require "../includes/footer.php"; ?>

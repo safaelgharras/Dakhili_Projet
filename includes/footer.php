@@ -1,9 +1,7 @@
 </main>
 
 <footer class="footer">
-    <div class="footer-container">
-        <p>&copy; 2026 Dakhili — Moroccan University Orientation Platform</p>
-    </div>
+    <div>© 2026 Dakhili · Plateforme d'orientation universitaire au Maroc</div>
 </footer>
 
 <script src="<?php echo $base; ?>assets/js/script.js"></script>

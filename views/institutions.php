@@ -1,5 +1,5 @@
 <?php
-$pageTitle = "Institutions";
+$pageTitle = "Universités";
 require "../includes/header.php";
 require "../config/DataBase.php";
 
@@ -7,8 +7,11 @@ require "../config/DataBase.php";
 $cities = $pdo->query("SELECT DISTINCT city FROM institutions ORDER BY city")->fetchAll(PDO::FETCH_COLUMN);
 $types = $pdo->query("SELECT DISTINCT type FROM institutions ORDER BY type")->fetchAll(PDO::FETCH_COLUMN);
 
-// Initial full load
-$sql = "SELECT * FROM institutions ORDER BY name ASC";
+// Initial full load with deadlines
+$sql = "SELECT institutions.*, deadlines.deadline_date 
+        FROM institutions 
+        LEFT JOIN deadlines ON institutions.id = deadlines.institution_id
+        ORDER BY institutions.name ASC";
 $stmt = $pdo->query($sql);
 $institutions = $stmt->fetchAll();
 
@@ -23,7 +26,7 @@ if ($isLoggedIn) {
 }
 ?>
 
-<h1 class="page-title">🏫 List of Schools</h1>
+<h1 class="page-title">Universités & Écoles</h1>
 
 <?php if (isset($_GET['success'])): ?>
     <div class="msg msg-success"><?php echo htmlspecialchars($_GET['success']); ?></div>
@@ -35,18 +38,18 @@ if ($isLoggedIn) {
 
 <!-- Search & Filters -->
 <div class="search-bar">
-    <input type="text" id="searchInput" placeholder="🔍 Search schools by name..." class="search-input">
+    <input type="text" id="searchInput" placeholder="Rechercher une filière, université..." class="search-input">
     
     <div class="filters">
         <select id="filterCity" class="filter-select">
-            <option value="">All Cities</option>
+            <option value="">Toutes les villes</option>
             <?php foreach($cities as $c): ?>
                 <option value="<?php echo htmlspecialchars($c); ?>"><?php echo htmlspecialchars($c); ?></option>
             <?php endforeach; ?>
         </select>
 
         <select id="filterType" class="filter-select">
-            <option value="">All Types</option>
+            <option value="">Tous les types</option>
             <?php foreach($types as $t): ?>
                 <option value="<?php echo htmlspecialchars($t); ?>"><?php echo htmlspecialchars($t); ?></option>
             <?php endforeach; ?>
@@ -54,28 +57,57 @@ if ($isLoggedIn) {
     </div>
 </div>
 
-<p id="resultsCount" class="results-count">Showing <?php echo count($institutions); ?> schools</p>
+<p id="resultsCount" class="results-count"><?php echo count($institutions); ?> établissements trouvés</p>
 
 <!-- Results Container -->
 <div class="cards-grid" id="resultsGrid">
     <?php foreach($institutions as $inst): ?>
         <div class="card">
-            <h3><?php echo htmlspecialchars($inst["name"]); ?></h3>
-            <p><span class="label">City:</span> <?php echo htmlspecialchars($inst["city"]); ?></p>
-            <p><span class="label">Type:</span> <span class="badge"><?php echo htmlspecialchars($inst["type"]); ?></span></p>
-            <p><span class="label">Min Average:</span> <?php echo htmlspecialchars($inst["min_average"]); ?>/20</p>
-            <p><?php echo htmlspecialchars($inst["description"]); ?></p>
-            <div class="requirements">
-                <span class="label">Requirements:</span> <?php echo htmlspecialchars($inst["requirements"]); ?>
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
+                <h3><?php echo htmlspecialchars($inst["name"]); ?></h3>
+                <span class="badge"><?php echo htmlspecialchars($inst["type"]); ?></span>
             </div>
+            <p><?php echo htmlspecialchars($inst["city"]); ?></p>
+            <p><?php echo htmlspecialchars($inst["description"]); ?></p>
+            <p><span class="label">Moyenne min:</span> <?php echo htmlspecialchars($inst["min_average"]); ?>/20</p>
+            <div class="requirements"><?php echo htmlspecialchars($inst["requirements"]); ?></div>
 
-            <?php if ($isLoggedIn): ?>
-                <?php if (in_array($inst['id'], $savedIds)): ?>
-                    <span class="badge-saved">✅ Already Saved</span>
-                <?php else: ?>
-                    <a href="../save_school.php?id=<?php echo $inst['id']; ?>" class="btn btn-save">⭐ Save</a>
-                <?php endif; ?>
+            <?php if (!empty($inst["deadline_date"])): ?>
+                <?php
+                    $deadline = new DateTime($inst["deadline_date"]);
+                    $today = new DateTime();
+                    $diff = $today->diff($deadline)->days;
+                    $isPast = $deadline < $today;
+                    
+                    if ($isPast) {
+                        $deadlineClass = "deadline-past";
+                        $deadlineText = "Expiré";
+                    } elseif ($diff <= 7) {
+                        $deadlineClass = "deadline-urgent";
+                        $deadlineText = "Dans " . $diff . " jour(s)";
+                    } elseif ($diff <= 30) {
+                        $deadlineClass = "deadline-soon";
+                        $deadlineText = $deadline->format("d/m/Y");
+                    } else {
+                        $deadlineClass = "deadline-normal";
+                        $deadlineText = $deadline->format("d/m/Y");
+                    }
+                ?>
+                <div class="deadline-badge <?php echo $deadlineClass; ?>">
+                    📅 Date limite: <?php echo $deadlineText; ?>
+                </div>
             <?php endif; ?>
+
+            <div class="card-actions">
+                <a href="institution_detail.php?id=<?php echo $inst['id']; ?>" class="btn btn-primary">Voir détails</a>
+                <?php if ($isLoggedIn): ?>
+                    <?php if (in_array($inst['id'], $savedIds)): ?>
+                        <span class="badge-saved">✅ Sauvegardé</span>
+                    <?php else: ?>
+                        <a href="../save_school.php?id=<?php echo $inst['id']; ?>" class="btn btn-save">Sauvegarder</a>
+                    <?php endif; ?>
+                <?php endif; ?>
+            </div>
         </div>
     <?php endforeach; ?>
 </div>
@@ -104,13 +136,13 @@ function doSearch() {
     fetch('../search_ajax.php?' + params.toString())
         .then(res => res.json())
         .then(data => {
-            resultsCount.textContent = 'Showing ' + data.length + ' schools';
+            resultsCount.textContent = data.length + ' établissements trouvés';
 
             if (data.length === 0) {
                 resultsGrid.innerHTML = `
                     <div class="empty-state" style="grid-column: 1/-1;">
                         <div class="icon">🔍</div>
-                        <p>No schools found matching your filters.</p>
+                        <p>Aucun établissement trouvé.</p>
                     </div>`;
                 return;
             }
@@ -118,15 +150,17 @@ function doSearch() {
             let html = '';
             data.forEach(inst => {
                 html += `<div class="card">
-                    <h3>${escHtml(inst.name)}</h3>
-                    <p><span class="label">City:</span> ${escHtml(inst.city)}</p>
-                    <p><span class="label">Type:</span> <span class="badge">${escHtml(inst.type)}</span></p>
-                    <p><span class="label">Min Average:</span> ${escHtml(inst.min_average)}/20</p>
-                    <p>${escHtml(inst.description)}</p>
-                    <div class="requirements">
-                        <span class="label">Requirements:</span> ${escHtml(inst.requirements)}
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
+                        <h3>${escHtml(inst.name)}</h3>
+                        <span class="badge">${escHtml(inst.type)}</span>
                     </div>
-                    ${isLoggedIn ? `<a href="../save_school.php?id=${inst.id}" class="btn btn-save">⭐ Save</a>` : ''}
+                    <p>${escHtml(inst.city)}</p>
+                    <p>${escHtml(inst.description)}</p>
+                    <p><span class="label">Moyenne min:</span> ${escHtml(inst.min_average)}/20</p>
+                    <div class="requirements">${escHtml(inst.requirements)}</div>
+                    <div class="card-actions">
+                        ${isLoggedIn ? `<a href="../save_school.php?id=${inst.id}" class="btn btn-save">Sauvegarder</a>` : ''}
+                    </div>
                 </div>`;
             });
             resultsGrid.innerHTML = html;
@@ -141,13 +175,11 @@ function escHtml(str) {
     return div.innerHTML;
 }
 
-// Debounced search on typing
 searchInput.addEventListener('input', () => {
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(doSearch, 300);
 });
 
-// Instant search on filter change
 filterCity.addEventListener('change', doSearch);
 filterType.addEventListener('change', doSearch);
 </script>

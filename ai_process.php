@@ -2,7 +2,7 @@
 session_start();
 require "config/DataBase.php";
 
-$pageTitle = "AI Results";
+$pageTitle = "Résultats IA";
 require "includes/header.php";
 
 if ($_SERVER["REQUEST_METHOD"] != "POST") {
@@ -14,8 +14,7 @@ $bac_branch = trim($_POST["bac_branch"]);
 $average = floatval($_POST["average"]);
 $city = trim($_POST["city"]);
 
-// --- Smart matching logic ---
-// Map bac branches to institution types they can access
+// Map bac branches to institution types
 $branchToTypes = [
     'SVT'     => ['Engineering', 'Science', 'Technical', 'University', 'Preparatory', 'Private', 'Education'],
     'PC'      => ['Engineering', 'Science', 'Technical', 'University', 'Preparatory', 'Private', 'Education'],
@@ -27,7 +26,6 @@ $branchToTypes = [
 
 $allowedTypes = isset($branchToTypes[$bac_branch]) ? $branchToTypes[$bac_branch] : ['University', 'Private'];
 
-// Build query: filter by min_average and allowed types
 $placeholders = implode(',', array_fill(0, count($allowedTypes), '?'));
 
 $sql = "SELECT * FROM institutions 
@@ -37,7 +35,6 @@ $sql = "SELECT * FROM institutions
 $params = [$average];
 $params = array_merge($params, $allowedTypes);
 
-// If city is provided, prioritize it (show city matches first)
 if (!empty($city)) {
     $sql .= " ORDER BY 
                 CASE WHEN city = ? THEN 0 ELSE 1 END,
@@ -51,59 +48,60 @@ $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
 $results = $stmt->fetchAll();
 
-// Save recommendation to ai_recommendations table
+// Save recommendation
 if (isset($_SESSION['user_id'])) {
-    $resultText = count($results) . " schools found for $bac_branch student with $average average";
+    $resultText = count($results) . " écoles trouvées pour $bac_branch avec $average de moyenne";
     $saveSql = "INSERT INTO ai_recommendations (student_id, result) VALUES (?, ?)";
     $saveStmt = $pdo->prepare($saveSql);
     $saveStmt->execute([$_SESSION['user_id'], $resultText]);
 }
 ?>
 
-<h1 class="page-title">🤖 AI Recommendations</h1>
+<h1 class="page-title">Recommandations IA</h1>
 
 <div class="msg msg-success">
-    Found <strong><?php echo count($results); ?></strong> schools matching your profile: 
+    <strong><?php echo count($results); ?></strong> école(s) correspondent à ton profil :
     <strong><?php echo htmlspecialchars($bac_branch); ?></strong> — 
-    Average: <strong><?php echo htmlspecialchars($average); ?>/20</strong>
+    Moyenne: <strong><?php echo htmlspecialchars($average); ?>/20</strong>
     <?php if (!empty($city)): ?>
-        — City: <strong><?php echo htmlspecialchars($city); ?></strong>
+        — Ville: <strong><?php echo htmlspecialchars($city); ?></strong>
     <?php endif; ?>
 </div>
 
 <?php if (count($results) == 0): ?>
     <div class="empty-state">
         <div class="icon">😔</div>
-        <p>No schools match your criteria. Try adjusting your average or removing the city filter.</p>
-        <a href="views/ai_form.php" class="btn btn-primary" style="margin-top:15px;">Try Again</a>
+        <p>Aucune école ne correspond à tes critères. Essaie d'ajuster ta moyenne ou ta ville.</p>
+        <a href="views/ai_form.php" class="btn btn-orange btn-lg" style="margin-top:15px;">Réessayer</a>
     </div>
 <?php else: ?>
     <div class="cards-grid">
         <?php foreach($results as $r): ?>
             <div class="card">
-                <h3><?php echo htmlspecialchars($r["name"]); ?></h3>
-                <p><span class="label">City:</span> <?php echo htmlspecialchars($r["city"]); ?>
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
+                    <h3><?php echo htmlspecialchars($r["name"]); ?></h3>
+                    <span class="badge"><?php echo htmlspecialchars($r["type"]); ?></span>
+                </div>
+                <p><?php echo htmlspecialchars($r["city"]); ?>
                     <?php if (!empty($city) && strtolower($r["city"]) === strtolower($city)): ?>
-                        <span class="badge" style="background:#fff3cd; color:#856404;">📍 Your city</span>
+                        <span class="badge" style="background:#fff3cd; color:#856404;">📍 Ta ville</span>
                     <?php endif; ?>
                 </p>
-                <p><span class="label">Type:</span> <span class="badge"><?php echo htmlspecialchars($r["type"]); ?></span></p>
-                <p><span class="label">Min Average:</span> <?php echo htmlspecialchars($r["min_average"]); ?>/20</p>
                 <p><?php echo htmlspecialchars($r["description"]); ?></p>
-                <div class="requirements">
-                    <span class="label">Requirements:</span> <?php echo htmlspecialchars($r["requirements"]); ?>
+                <p><span class="label">Moyenne min:</span> <?php echo htmlspecialchars($r["min_average"]); ?>/20</p>
+                <div class="requirements"><?php echo htmlspecialchars($r["requirements"]); ?></div>
+                <div class="card-actions">
+                    <?php if (isset($_SESSION['user_id'])): ?>
+                        <a href="save_school.php?id=<?php echo $r['id']; ?>" class="btn btn-save">Sauvegarder</a>
+                    <?php endif; ?>
                 </div>
-
-                <?php if (isset($_SESSION['user_id'])): ?>
-                    <a href="save_school.php?id=<?php echo $r['id']; ?>" class="btn btn-save">⭐ Save</a>
-                <?php endif; ?>
             </div>
         <?php endforeach; ?>
     </div>
 <?php endif; ?>
 
 <div style="text-align:center; margin-top:25px;">
-    <a href="views/ai_form.php" class="btn btn-primary">🔄 Try Again</a>
+    <a href="views/ai_form.php" class="btn btn-primary btn-lg">Réessayer</a>
 </div>
 
 <?php require "includes/footer.php"; ?>

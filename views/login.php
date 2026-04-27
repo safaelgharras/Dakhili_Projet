@@ -1,10 +1,10 @@
 <?php
-$pageTitle = "Login";
+$pageTitle = "Connexion";
 require "../includes/header.php";
 ?>
 
 <div class="form-container">
-    <h2>🔐 Login</h2>
+    <h2>Connexion</h2>
 
     <?php if (isset($_GET['error'])): ?>
         <div class="msg msg-error"><?php echo htmlspecialchars($_GET['error']); ?></div>
@@ -17,19 +17,19 @@ require "../includes/header.php";
     <form method="POST" action="../login_process.php">
         <div class="form-group">
             <label>Email</label>
-            <input type="email" name="email" placeholder="your@email.com" required>
+            <input type="email" name="email" placeholder="votre@email.com" required>
         </div>
 
         <div class="form-group">
-            <label>Password</label>
+            <label>Mot de passe</label>
             <input type="password" name="password" placeholder="••••••••" required>
         </div>
 
-        <button type="submit" class="btn btn-primary">Login</button>
+        <button type="submit" class="btn btn-orange">Se connecter</button>
     </form>
 
     <div class="form-footer">
-        <p>Don't have an account? <a href="register.php">Register here</a></p>
+        <p>Pas encore de compte ? <a href="register.php">Créer un compte</a></p>
     </div>
 </div>
 

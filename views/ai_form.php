@@ -1,19 +1,19 @@
 <?php
-$pageTitle = "AI Orientation";
+$pageTitle = "Orientation IA";
 require "../includes/header.php";
 ?>
 
 <div class="form-container">
-    <h2>🤖 Find Your School</h2>
-    <p style="text-align:center; color:#777; margin-bottom:20px; font-size:0.9rem;">
-        Enter your profile and we'll suggest the best schools for you.
+    <h2>🤖 Orientation personnalisée</h2>
+    <p style="text-align:center; color:var(--text-muted); margin-bottom:20px; font-size:0.85rem;">
+        Entre ton profil et on te suggère les meilleures écoles pour toi.
     </p>
 
     <form method="POST" action="../ai_process.php">
         <div class="form-group">
-            <label>Bac Branch</label>
+            <label>Filière du Bac</label>
             <select name="bac_branch" required>
-                <option value="">-- Select --</option>
+                <option value="">-- Choisir --</option>
                 <option value="SVT">Sciences de la Vie et de la Terre (SVT)</option>
                 <option value="PC">Physique-Chimie (PC)</option>
                 <option value="Math">Sciences Mathématiques</option>
@@ -24,16 +24,16 @@ require "../includes/header.php";
         </div>
 
         <div class="form-group">
-            <label>Bac Average</label>
+            <label>Moyenne du Bac</label>
             <input type="number" step="0.01" name="average" placeholder="14.50" min="0" max="20" required>
         </div>
 
         <div class="form-group">
-            <label>Preferred City</label>
+            <label>Ville préférée</label>
             <input type="text" name="city" placeholder="Casablanca">
         </div>
 
-        <button type="submit" class="btn btn-primary">🔍 Get Recommendations</button>
+        <button type="submit" class="btn btn-orange">Obtenir les recommandations</button>
     </form>
 </div>
 
