@@ -1,4 +1,4 @@
-# Dakhili Project — Progress Tracker
+# Maslaki Project — Progress Tracker
 
 ---
 
@@ -50,7 +50,7 @@
 26. Reviews — display approved reviews on detail page ✔
 
 ### Design (Navy + Orange)
-27. Complete CSS redesign matching `dakhili_redesign_preview.html` ✔
+27. Complete CSS redesign matching `maslaki_redesign_preview.html` ✔
 28. All pages in French ✔
 29. Shared header/footer with session-aware navbar ✔
 30. XSS protection (`htmlspecialchars`) on all output ✔
@@ -83,7 +83,7 @@
 ## 📁 Final File Structure
 
 ```
-Dakhili-projet/
+Maslaki-projet/
 ├── index.php                    ← Landing page (hero + stats)
 ├── login_process.php            ← Login backend
 ├── register_process.php         ← Register backend
@@ -92,7 +92,7 @@ Dakhili-projet/
 ├── search_ajax.php              ← AJAX search endpoint
 ├── ai_process.php               ← AI results page
 ├── submit_review.php            ← Review submission backend
-├── dakhili.sql                  ← Database schema + data
+├── maslaki.sql                  ← Database schema + data
 │
 ├── config/
 │   └── DataBase.php             ← PDO connection

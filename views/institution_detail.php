@@ -1,5 +1,5 @@
 <?php
-$pageTitle = "Détails";
+$pageTitle = "Détails de l'établissement";
 require "../includes/header.php";
 require "../config/DataBase.php";
 
@@ -11,19 +11,35 @@ if (!isset($_GET["id"]) || !is_numeric($_GET["id"])) {
 $id = (int) $_GET["id"];
 $isLoggedIn = isset($_SESSION['user_id']);
 
-// Get institution details with deadline
-$sql = "SELECT institutions.*, deadlines.deadline_date 
-        FROM institutions 
-        LEFT JOIN deadlines ON institutions.id = deadlines.institution_id
-        WHERE institutions.id = ?";
+// Get institution details with city safety
+$sql = "SELECT i.*";
+$hasVilles = false;
+try {
+    $pdo->query("SELECT 1 FROM villes LIMIT 1");
+    $hasVilles = true;
+    $sql .= ", v.nom as ville_nom FROM institutions i LEFT JOIN villes v ON i.ville_id = v.id";
+} catch (Exception $e) {
+    $sql .= " FROM institutions i";
+}
+$sql .= " WHERE i.id = ?";
+
 $stmt = $pdo->prepare($sql);
 $stmt->execute([$id]);
 $inst = $stmt->fetch();
+
 
 if (!$inst) {
     header("Location: institutions.php?error=École introuvable");
     exit();
 }
+
+// Get filieres
+$filiereSql = "SELECT f.* FROM filieres f 
+               JOIN institution_filieres ifil ON f.id = ifil.filiere_id 
+               WHERE ifil.institution_id = ?";
+$filiereStmt = $pdo->prepare($filiereSql);
+$filiereStmt->execute([$id]);
+$filieres = $filiereStmt->fetchAll();
 
 // Get approved reviews
 $reviewSql = "SELECT reviews.*, students.name AS author_name 
@@ -34,101 +50,145 @@ $reviewSql = "SELECT reviews.*, students.name AS author_name
 $reviewStmt = $pdo->prepare($reviewSql);
 $reviewStmt->execute([$id]);
 $reviews = $reviewStmt->fetchAll();
-
-// Check if user already reviewed
-$hasReviewed = false;
-if ($isLoggedIn) {
-    $checkReview = $pdo->prepare("SELECT id FROM reviews WHERE student_id = ? AND institution_id = ?");
-    $checkReview->execute([$_SESSION['user_id'], $id]);
-    $hasReviewed = $checkReview->fetch() ? true : false;
-}
 ?>
 
-<div style="margin-bottom:15px;">
-    <a href="institutions.php" style="color:var(--orange); font-size:0.85rem;">← Retour aux universités</a>
+<div class="detail-container">
+    <div class="detail-hero">
+        <img src="../assets/images/institutions/<?php echo $inst['image'] ?? 'default_school.jpg'; ?>" alt="<?php echo htmlspecialchars($inst['name']); ?>" class="hero-bg">
+        <div class="hero-overlay">
+            <div class="hero-text">
+                <span class="type-badge"><?php echo htmlspecialchars($inst['type']); ?></span>
+                <h1><?php echo htmlspecialchars($inst['name']); ?></h1>
+                <p>📍 <?php echo htmlspecialchars($inst['ville_nom'] ?? $inst['city']); ?> — Maroc</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="detail-grid">
+        <div class="detail-main">
+            <section class="info-card">
+                <h2>À propos de l'établissement</h2>
+                <p class="description"><?php echo nl2br(htmlspecialchars($inst['description'])); ?></p>
+            </section>
+
+            <section class="info-card">
+                <h2>Filières disponibles</h2>
+                <div class="filieres-list">
+                    <?php if (count($filieres) > 0): ?>
+                        <?php foreach($filieres as $f): ?>
+                            <div class="filiere-item">
+                                <h3><?php echo htmlspecialchars($f['nom']); ?></h3>
+                                <p><?php echo htmlspecialchars($f['description']); ?></p>
+                            </div>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <p class="empty-msg">Aucune filière répertoriée pour le moment.</p>
+                    <?php endif; ?>
+                </div>
+            </section>
+
+            <section class="info-card">
+                <h2>Avis des étudiants</h2>
+                <?php if ($isLoggedIn): ?>
+                    <div class="review-form">
+                        <form method="POST" action="../submit_review.php">
+                            <input type="hidden" name="institution_id" value="<?php echo $id; ?>">
+                            <textarea name="content" placeholder="Partagez votre avis sur cet établissement..." required></textarea>
+                            <button type="submit" class="btn btn-primary">Envoyer l'avis</button>
+                        </form>
+                    </div>
+                <?php else: ?>
+                    <p class="login-msg"><a href="login.php">Connectez-vous</a> pour laisser un avis.</p>
+                <?php endif; ?>
+
+                <div class="reviews-list">
+                    <?php foreach($reviews as $rev): ?>
+                        <div class="review-item">
+                            <div class="rev-head">
+                                <strong><?php echo htmlspecialchars($rev['author_name']); ?></strong>
+                                <span><?php echo date('d/m/Y', strtotime($rev['created_at'])); ?></span>
+                            </div>
+                            <p><?php echo htmlspecialchars($rev['content']); ?></p>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            </section>
+        </div>
+
+        <aside class="detail-sidebar">
+            <div class="sidebar-card">
+                <h3>Informations Admission</h3>
+                <ul class="info-list">
+                    <li>
+                        <strong>Seuil d'accès:</strong>
+                        <span><?php echo $inst['seuil'] ?? '--'; ?> / 20</span>
+                    </li>
+                    <li>
+                        <strong>Diplôme délivré:</strong>
+                        <span><?php echo htmlspecialchars($inst['diplome'] ?? 'Non spécifié'); ?></span>
+                    </li>
+                    <li>
+                        <strong>Durée d'études:</strong>
+                        <span><?php echo htmlspecialchars($inst['duree_etudes'] ?? '--'); ?></span>
+                    </li>
+                    <li>
+                        <strong>Pré-requis:</strong>
+                        <div class="req-text"><?php echo nl2br(htmlspecialchars($inst['requirements'])); ?></div>
+                    </li>
+                </ul>
+                
+                <?php if ($inst['site_web']): ?>
+                    <a href="<?php echo htmlspecialchars($inst['site_web']); ?>" target="_blank" class="btn btn-accent btn-full">
+                        🌐 Site officiel
+                    </a>
+                <?php endif; ?>
+                
+                <?php if ($isLoggedIn): ?>
+                    <a href="../save_school.php?id=<?php echo $id; ?>" class="btn btn-outline btn-full">
+                        ❤ Sauvegarder
+                    </a>
+                <?php endif; ?>
+            </div>
+        </aside>
+    </div>
 </div>
 
-<div class="card" style="border-left:4px solid var(--orange); margin-bottom:20px;">
-    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
-        <h3 style="font-size:1.2rem;"><?php echo htmlspecialchars($inst["name"]); ?></h3>
-        <span class="badge"><?php echo htmlspecialchars($inst["type"]); ?></span>
-    </div>
-    <p><span class="label">Ville:</span> <?php echo htmlspecialchars($inst["city"]); ?></p>
-    <p><?php echo htmlspecialchars($inst["description"]); ?></p>
-    <p><span class="label">Moyenne min:</span> <?php echo htmlspecialchars($inst["min_average"]); ?>/20</p>
-    <div class="requirements"><?php echo htmlspecialchars($inst["requirements"]); ?></div>
+<style>
+.detail-container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+.detail-hero { height: 400px; border-radius: var(--radius-lg); overflow: hidden; position: relative; margin-bottom: 40px; box-shadow: var(--shadow-lg); }
+.hero-bg { width: 100%; height: 100%; object-fit: cover; }
+.hero-overlay { position: absolute; bottom: 0; left: 0; right: 0; padding: 60px 40px; background: linear-gradient(transparent, rgba(0,0,0,0.8)); color: #fff; }
+.hero-text h1 { font-size: 2.5rem; margin: 10px 0; }
+.type-badge { background: var(--accent); padding: 5px 15px; border-radius: 20px; font-weight: 700; font-size: 0.8rem; text-transform: uppercase; }
 
-    <?php if (!empty($inst["deadline_date"])): ?>
-        <?php
-            $deadline = new DateTime($inst["deadline_date"]);
-            $today = new DateTime();
-            $diff = $today->diff($deadline)->days;
-            $isPast = $deadline < $today;
-            
-            if ($isPast) { $cls = "deadline-past"; $txt = "Expiré"; }
-            elseif ($diff <= 7) { $cls = "deadline-urgent"; $txt = "Dans $diff jour(s)"; }
-            elseif ($diff <= 30) { $cls = "deadline-soon"; $txt = $deadline->format("d/m/Y"); }
-            else { $cls = "deadline-normal"; $txt = $deadline->format("d/m/Y"); }
-        ?>
-        <div class="deadline-badge <?php echo $cls; ?>" style="margin-top:12px;">
-            📅 Date limite: <?php echo $txt; ?>
-        </div>
-    <?php endif; ?>
+.detail-grid { display: grid; grid-template-columns: 1fr 350px; gap: 40px; }
+.info-card { background: var(--white); padding: 30px; border-radius: var(--radius-md); box-shadow: var(--shadow-md); margin-bottom: 30px; }
+.info-card h2 { color: var(--primary); margin-bottom: 20px; font-size: 1.4rem; border-bottom: 2px solid var(--border-color); padding-bottom: 10px; }
 
-    <div class="card-actions">
-        <?php if ($isLoggedIn): ?>
-            <a href="../save_school.php?id=<?php echo $inst['id']; ?>" class="btn btn-save">Sauvegarder</a>
-        <?php endif; ?>
-    </div>
-</div>
+.filieres-list { display: grid; gap: 15px; }
+.filiere-item { padding: 15px; border: 1px solid var(--border-color); border-radius: var(--radius-md); transition: var(--transition); }
+.filiere-item:hover { border-color: var(--accent); background: rgba(255,109,0,0.02); }
+.filiere-item h3 { font-size: 1rem; color: var(--primary); margin-bottom: 5px; }
+.filiere-item p { font-size: 0.85rem; color: var(--text-muted); }
 
-<!-- Reviews Section -->
-<h2 style="font-size:1.2rem; color:var(--navy); margin-bottom:15px; font-weight:700;">
-    💬 Avis (<?php echo count($reviews); ?>)
-</h2>
+.detail-sidebar .sidebar-card { background: var(--primary); color: #fff; padding: 30px; border-radius: var(--radius-md); box-shadow: var(--shadow-lg); position: sticky; top: 100px; }
+.sidebar-card h3 { margin-bottom: 20px; font-size: 1.2rem; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 10px; }
+.info-list { list-style: none; padding: 0; }
+.info-list li { margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
+.info-list li strong { display: block; font-size: 0.8rem; color: rgba(255,255,255,0.6); margin-bottom: 5px; }
+.info-list li span { font-weight: 600; font-size: 1.1rem; }
+.req-text { font-size: 0.9rem; color: rgba(255,255,255,0.9); }
 
-<?php if (isset($_GET['review_success'])): ?>
-    <div class="msg msg-success">Ton avis a été soumis et sera publié après validation.</div>
-<?php endif; ?>
+.btn-full { width: 100%; margin-top: 15px; padding: 12px; }
+.btn-accent { background: var(--accent); color: #fff; }
+.btn-outline { border: 1.5px solid #fff; background: transparent; color: #fff; }
+.btn-outline:hover { background: #fff; color: var(--primary); }
 
-<?php if (isset($_GET['review_error'])): ?>
-    <div class="msg msg-error"><?php echo htmlspecialchars($_GET['review_error']); ?></div>
-<?php endif; ?>
-
-<?php if ($isLoggedIn && !$hasReviewed): ?>
-    <div class="review-form">
-        <form method="POST" action="../submit_review.php">
-            <input type="hidden" name="institution_id" value="<?php echo $inst['id']; ?>">
-            <div class="form-group" style="margin-bottom:10px;">
-                <textarea name="content" placeholder="Partage ton expérience avec cette école..." required></textarea>
-            </div>
-            <button type="submit" class="btn btn-orange">Envoyer l'avis</button>
-        </form>
-    </div>
-<?php elseif ($isLoggedIn && $hasReviewed): ?>
-    <div class="msg" style="background:var(--orange-light); color:var(--orange-dark); border:1px solid var(--orange);">
-        Tu as déjà laissé un avis pour cette école.
-    </div>
-<?php elseif (!$isLoggedIn): ?>
-    <p style="color:var(--text-muted); font-size:0.85rem;">
-        <a href="login.php" style="color:var(--orange); font-weight:600;">Connecte-toi</a> pour laisser un avis.
-    </p>
-<?php endif; ?>
-
-<?php if (count($reviews) == 0): ?>
-    <div class="empty-state" style="padding:30px;">
-        <p>Aucun avis pour le moment. Sois le premier !</p>
-    </div>
-<?php else: ?>
-    <?php foreach($reviews as $rev): ?>
-        <div class="review-item">
-            <div class="review-header">
-                <span class="review-author">👤 <?php echo htmlspecialchars($rev["author_name"]); ?></span>
-                <span class="review-date"><?php echo date("d/m/Y", strtotime($rev["created_at"])); ?></span>
-            </div>
-            <div class="review-content"><?php echo htmlspecialchars($rev["content"]); ?></div>
-        </div>
-    <?php endforeach; ?>
-<?php endif; ?>
+@media (max-width: 992px) {
+    .detail-grid { grid-template-columns: 1fr; }
+    .detail-hero { height: 300px; }
+    .hero-text h1 { font-size: 1.8rem; }
+}
+</style>
 
 <?php require "../includes/footer.php"; ?>

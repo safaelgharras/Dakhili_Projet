@@ -1,5 +1,5 @@
 -- Seed deadlines for institutions
--- Run this in phpMyAdmin after importing dakhili.sql
+-- Run this in phpMyAdmin after importing maslaki.sql
 
 INSERT INTO `deadlines` (`id`, `institution_id`, `deadline_date`) VALUES
 (1, 1, '2026-06-15'),

@@ -1,6 +1,6 @@
-# 🗺️ Dakhili — Complete Development Workflow
+# 🗺️ Maslaki — Complete Development Workflow
 
-> A step-by-step roadmap to build the full Dakhili platform.
+> A step-by-step roadmap to build the full Maslaki platform.
 > Each phase builds on the previous one. Follow in order.
 
 ---
@@ -86,7 +86,7 @@
 
 | Step | Task | Files |
 |------|------|-------|
-| 6.1 | Seed `deadlines` table with sample data | `dakhili.sql` or admin |
+| 6.1 | Seed `deadlines` table with sample data | `maslaki.sql` or admin |
 | 6.2 | Show deadline on institution cards (JOIN with `deadlines`) | `views/institutions.php` |
 | 6.3 | Highlight upcoming deadlines (< 7 days = red, < 30 days = orange) | `assets/css/style.css` |
 | 6.4 | Add "Upcoming Deadlines" section on dashboard | `views/dashboard.php` |

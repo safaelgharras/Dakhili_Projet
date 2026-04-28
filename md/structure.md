@@ -1,4 +1,4 @@
-dakhili-project/
+maslaki-project/
 │
 ├── index.php                
 ├── save_school.php        

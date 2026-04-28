@@ -41,20 +41,24 @@ $schools = $stmt->fetchAll();
     <div class="cards-grid">
         <?php foreach($schools as $s): ?>
             <div class="card">
-                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
-                    <h3><?php echo htmlspecialchars($s["name"]); ?></h3>
-                    <span class="badge"><?php echo htmlspecialchars($s["type"]); ?></span>
-                </div>
-                <p><?php echo htmlspecialchars($s["city"]); ?></p>
-                <p><?php echo htmlspecialchars($s["description"]); ?></p>
-                <p><span class="label">Moyenne min:</span> <?php echo htmlspecialchars($s["min_average"]); ?>/20</p>
-                <div class="requirements"><?php echo htmlspecialchars($s["requirements"]); ?></div>
-                <div class="card-actions">
-                    <a href="../remove_school.php?id=<?php echo $s['id']; ?>" class="btn btn-danger" onclick="return confirm('Supprimer cette école ?');">Supprimer</a>
+                <img src="../assets/images/institutions/<?php echo $s['image'] ?? 'default_school.jpg'; ?>" class="card-img" alt="<?php echo htmlspecialchars($s['name']); ?>">
+                <div class="card-body">
+                    <div class="card-tag"><?php echo htmlspecialchars($s['type']); ?></div>
+                    <h3><?php echo htmlspecialchars($s['name']); ?></h3>
+                    <p class="school-location">📍 <?php echo htmlspecialchars($s['city']); ?></p>
+                    
+                    <div class="card-footer">
+                        <span class="seuil">Seuil: <strong><?php echo $s['min_average'] ?? '--'; ?></strong></span>
+                        <div class="card-actions">
+                            <a href="institution_detail.php?id=<?php echo $s['id']; ?>" class="btn-link">Détails →</a>
+                            <a href="../remove_school.php?id=<?php echo $s['id']; ?>" class="btn btn-danger" onclick="return confirm('Supprimer cette école ?');">Supprimer</a>
+                        </div>
+                    </div>
                 </div>
             </div>
         <?php endforeach; ?>
     </div>
+
 <?php endif; ?>
 
 <?php require "../includes/footer.php"; ?>

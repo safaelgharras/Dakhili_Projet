@@ -2,29 +2,39 @@
 require "config/DataBase.php";
 
 $search = isset($_GET["search"]) ? trim($_GET["search"]) : "";
-$city = isset($_GET["city"]) ? trim($_GET["city"]) : "";
+$cityId = isset($_GET["city_id"]) ? trim($_GET["city_id"]) : "";
+$catId = isset($_GET["cat_id"]) ? trim($_GET["cat_id"]) : "";
 $type = isset($_GET["type"]) ? trim($_GET["type"]) : "";
 
-$sql = "SELECT * FROM institutions WHERE 1=1";
+$sql = "SELECT DISTINCT i.* FROM institutions i 
+        LEFT JOIN institution_filieres ifil ON i.id = ifil.institution_id
+        LEFT JOIN filieres f ON ifil.filiere_id = f.id
+        WHERE 1=1";
 $params = [];
 
 if (!empty($search)) {
-    $sql .= " AND (name LIKE ? OR description LIKE ?)";
+    $sql .= " AND (i.name LIKE ? OR i.description LIKE ? OR f.nom LIKE ?)";
+    $params[] = "%$search%";
     $params[] = "%$search%";
     $params[] = "%$search%";
 }
 
-if (!empty($city)) {
-    $sql .= " AND city = ?";
-    $params[] = $city;
+if (!empty($cityId)) {
+    $sql .= " AND i.ville_id = ?";
+    $params[] = $cityId;
+}
+
+if (!empty($catId)) {
+    $sql .= " AND f.categorie_id = ?";
+    $params[] = $catId;
 }
 
 if (!empty($type)) {
-    $sql .= " AND type = ?";
+    $sql .= " AND i.type = ?";
     $params[] = $type;
 }
 
-$sql .= " ORDER BY name ASC";
+$sql .= " ORDER BY i.is_popular DESC, i.name ASC";
 
 $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
