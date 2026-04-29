@@ -57,17 +57,17 @@ ADD COLUMN IF NOT EXISTS `is_popular` boolean DEFAULT false;
 -- --------------------------------------------------------
 
 -- Villes
-INSERT INTO `villes` (`id`, `nom`) VALUES
+INSERT IGNORE INTO `villes` (`id`, `nom`) VALUES
 (1, 'Casablanca'), (2, 'Rabat'), (3, 'Marrakech'), (4, 'Fes'), (5, 'Tanger'),
 (6, 'Agadir'), (7, 'Oujda'), (8, 'Kenitra'), (9, 'Settat'), (10, 'Meknes');
 
 -- Categories
-INSERT INTO `categories` (`id`, `nom`) VALUES
+INSERT IGNORE INTO `categories` (`id`, `nom`) VALUES
 (1, 'Sciences'), (2, 'Économie & Gestion'), (3, 'Lettres'), (4, 'Sciences Humaines'),
 (5, 'Informatique'), (6, 'Santé'), (7, 'Droit'), (8, 'Arts'), (9, 'Technologie');
 
 -- Filieres
-INSERT INTO `filieres` (`id`, `nom`, `description`, `categorie_id`) VALUES
+INSERT IGNORE INTO `filieres` (`id`, `nom`, `description`, `categorie_id`) VALUES
 (1, 'Génie Informatique', 'Conception et développement de systèmes logiciels', 5),
 (2, 'Finance', 'Gestion financière et marchés de capitaux', 2),
 (3, 'Marketing', 'Stratégies commerciales et communication', 2),
@@ -84,7 +84,7 @@ UPDATE `institutions` SET `ville_id` = 2, `image` = 'emi_rabat.jpg', `seuil` = 1
 UPDATE `institutions` SET `ville_id` = 2, `image` = 'uir_rabat.jpg', `seuil` = 12, `duree_etudes` = '5 ans', `diplome` = 'Master / Ingénieur' WHERE `name` LIKE '%UIR%';
 
 -- Link some institutions to filieres (Sample)
-INSERT INTO `institution_filieres` (`institution_id`, `filiere_id`) VALUES
+INSERT IGNORE INTO `institution_filieres` (`institution_id`, `filiere_id`) VALUES
 (1, 1), (1, 7), -- ENSA Casa -> Genie Info, Data Science
 (2, 2), (2, 3), -- ENCG Casa -> Finance, Marketing
 (10, 1);         -- EMI Rabat -> Genie Info

@@ -109,8 +109,19 @@ if ($isLoggedIn) {
 
         <div class="cards-grid" id="resultsGrid">
             <?php foreach($institutions as $inst): ?>
+                <?php
+                    $instName = trim(strtolower($inst['name'] ?? ''));
+                    $imageFile = $inst['image'] ?? 'default_school.jpg';
+                    if ($instName === 'cpge fes' || $instName === 'cpge fez') {
+                        $imageFile = 'cpge-fes.png';
+                    } elseif ($instName === 'emsi casablanca') {
+                        $imageFile = 'emsi-casablanca.png';
+                    } elseif ($instName === 'eigsi casablanca') {
+                        $imageFile = 'eigsi-casablanca.png';
+                    }
+                ?>
                 <div class="card">
-                    <img src="../assets/images/institutions/<?php echo $inst['image'] ?? 'default_school.jpg'; ?>" class="card-img" alt="<?php echo htmlspecialchars($inst['name']); ?>">
+                    <img src="../assets/images/institutions/<?php echo $imageFile; ?>" class="card-img" alt="<?php echo htmlspecialchars($inst['name']); ?>">
                     <div class="card-body">
                         <div class="card-tag"><?php echo htmlspecialchars($inst['type']); ?></div>
                         <h3><?php echo htmlspecialchars($inst['name']); ?></h3>
@@ -122,7 +133,7 @@ if ($isLoggedIn) {
                         </div>
 
                         <div class="card-footer">
-                            <span class="seuil">Seuil: <strong><?php echo $inst['seuil'] ?? '--'; ?></strong></span>
+                            <span class="seuil">Seuil: <strong><?php echo $inst['seuil'] ?? $inst['min_average'] ?? '--'; ?></strong></span>
                             <div class="card-actions">
                                 <a href="institution_detail.php?id=<?php echo $inst['id']; ?>" class="btn-link">Détails →</a>
                                 <?php if ($isLoggedIn): ?>
@@ -155,6 +166,16 @@ if ($isLoggedIn) {
 .results-count { color: var(--text-muted); font-weight: 600; }
 
 .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 30px; }
+.institutions-layout .card-img {
+    height: 240px;
+    object-fit: cover;
+    object-position: center;
+    background: transparent;
+    padding: 0;
+}
+.institutions-layout .card:hover .card-img {
+    transform: scale(1.03);
+}
 
 @media (max-width: 992px) {
     .institutions-layout { grid-template-columns: 1fr; }
@@ -207,6 +228,9 @@ const resetBtn = document.getElementById('resetFilters');
 
 let debounceTimer;
 
+const isLoggedIn = <?php echo $isLoggedIn ? 'true' : 'false'; ?>;
+let savedIds = <?php echo json_encode($savedIds); ?>;
+
 function doSearch() {
     const params = new URLSearchParams();
     if (searchInput.value) params.set('search', searchInput.value);
@@ -228,26 +252,44 @@ function renderResults(data) {
         return;
     }
 
-    resultsGrid.innerHTML = data.map(inst => `
-        <div class="card">
-            <img src="../assets/images/institutions/${inst.image || 'default_school.jpg'}" class="card-img" alt="${inst.name}">
-            <div class="card-body">
-                <div class="card-tag">${inst.type}</div>
-                <h3>${inst.name}</h3>
-                <p class="school-location">📍 ${inst.city || 'Maroc'}</p>
-                <div class="card-info-row">
-                    <span>🎓 ${inst.diplome || 'Diplôme'}</span>
-                    <span>⏳ ${inst.duree_etudes || '--'}</span>
-                </div>
-                <div class="card-footer">
-                    <span class="seuil">Seuil: <strong>${inst.seuil || '--'}</strong></span>
-                    <div class="card-actions">
-                        <a href="institution_detail.php?id=${inst.id}" class="btn-link">Détails →</a>
+    resultsGrid.innerHTML = data.map(inst => {
+        const isSaved = savedIds.includes(inst.id.toString()) || savedIds.includes(parseInt(inst.id));
+        const normalizedName = (inst.name || '').trim().toLowerCase();
+        let cardImage = inst.image || 'default_school.jpg';
+        if (normalizedName === 'cpge fes' || normalizedName === 'cpge fez') {
+            cardImage = 'cpge-fes.png';
+        } else if (normalizedName === 'emsi casablanca') {
+            cardImage = 'emsi-casablanca.png';
+        } else if (normalizedName === 'eigsi casablanca') {
+            cardImage = 'eigsi-casablanca.png';
+        }
+        return `
+            <div class="card">
+                <img src="../assets/images/institutions/${cardImage}" class="card-img" alt="${inst.name}">
+                <div class="card-body">
+                    <div class="card-tag">${inst.type}</div>
+                    <h3>${inst.name}</h3>
+                    <p class="school-location">📍 ${inst.city || 'Maroc'}</p>
+                    <div class="card-info-row">
+                        <span>🎓 ${inst.diplome || 'Diplôme'}</span>
+                        <span>⏳ ${inst.duree_etudes || '--'}</span>
+                    </div>
+                    <div class="card-footer">
+                        <span class="seuil">Seuil: <strong>${inst.seuil || inst.min_average || '--'}</strong></span>
+                        <div class="card-actions">
+                            <a href="institution_detail.php?id=${inst.id}" class="btn-link">Détails →</a>
+                            ${isLoggedIn ? `
+                                <button class="btn-icon-save ${isSaved ? 'active' : ''}" 
+                                        onclick="toggleSave(${inst.id}, this)">
+                                    ❤
+                                </button>
+                            ` : ''}
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    `).join('');
+        `;
+    }).join('');
 }
 
 function toggleSave(id, btn) {
@@ -256,6 +298,13 @@ function toggleSave(id, btn) {
         .then(data => {
             if (data.status === 'success') {
                 btn.classList.toggle('active');
+                // Update global state
+                const idStr = id.toString();
+                if (savedIds.includes(idStr)) {
+                    savedIds = savedIds.filter(sid => sid !== idStr);
+                } else {
+                    savedIds.push(idStr);
+                }
             }
         });
 }

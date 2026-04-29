@@ -4,11 +4,15 @@ require "config/DataBase.php";
 echo "<h1>Maslaki - Database Migration</h1>";
 
 try {
-    $sql = file_get_contents("database/schema_update.sql");
+    $files = ["database/schema_update.sql", "database/features_update.sql"];
     
-    // Split by semicolons, but be careful with multi-line statements
-    // This is a simple parser for the migration script
-    $pdo->exec($sql);
+    foreach ($files as $file) {
+        if (file_exists($file)) {
+            $sql = file_get_contents($file);
+            $pdo->exec($sql);
+            echo "<p>Running $file... Done.</p>";
+        }
+    }
     
     echo "<p style='color:green;'>✅ Migration successful! Your database is now up to date.</p>";
     echo "<a href='index.php'>Go to Home</a>";

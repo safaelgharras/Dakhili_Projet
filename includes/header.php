@@ -19,6 +19,16 @@ try {
 // Detect base path (works from root or views folder)
 $isInViews = strpos($_SERVER['PHP_SELF'], '/views/') !== false;
 $base = $isInViews ? '../' : '';
+
+// Get unread notifications count
+$unreadCount = 0;
+if (isset($_SESSION['user_id'])) {
+    try {
+        $notifStmt = $pdo->prepare("SELECT COUNT(*) FROM notifications WHERE student_id = ? AND is_read = 0");
+        $notifStmt->execute([$_SESSION['user_id']]);
+        $unreadCount = $notifStmt->fetchColumn();
+    } catch (Exception $e) {}
+}
 ?>
 
 <!DOCTYPE html>
@@ -44,10 +54,28 @@ $base = $isInViews ? '../' : '';
                 <?php if (isset($_SESSION['user_id'])): ?>
                     <li><a href="<?php echo $base; ?>views/dashboard.php">Mon Profil</a></li>
                     <li><a href="<?php echo $base; ?>views/ai_form.php" class="btn btn-accent">Orientation IA 🤖</a></li>
+                    <li class="notif-menu-item">
+                        <div class="notif-icon-wrapper" id="notifBtn">
+                            <span class="notif-bell">🔔</span>
+                            <?php if ($unreadCount > 0): ?>
+                                <span class="notif-badge"><?php echo $unreadCount; ?></span>
+                            <?php endif; ?>
+                        </div>
+                        <div class="notif-dropdown" id="notifDropdown">
+                            <div class="notif-dropdown-header">
+                                <h3>Notifications</h3>
+                                <button id="markAllRead">Tout marquer comme lu</button>
+                            </div>
+                            <div class="notif-dropdown-list" id="notifList">
+                                <!-- Loaded via AJAX -->
+                                <div class="notif-loading">Chargement...</div>
+                            </div>
+                        </div>
+                    </li>
                     <li class="user-menu-item">
                         <div class="user-profile-icon" id="profileBtn">👤</div>
                         <div class="profile-dropdown" id="profileDropdown">
-                            <a href="<?php echo $base; ?>logout.php" class="dropdown-link logout-red">Déconnexion</a>
+                            <a href="<?php echo $base; ?>views/logout.php" class="dropdown-link logout-red">Déconnexion</a>
                         </div>
                     </li>
                 <?php else: ?>
@@ -88,6 +116,30 @@ $base = $isInViews ? '../' : '';
 .dropdown-link.logout-red { color: #e11d48; }
 .dropdown-link.logout-red:hover { background: #fff1f2; }
 
+/* Notification Styles */
+.notif-menu-item { position: relative; list-style: none; margin-left: 20px; }
+.notif-icon-wrapper { position: relative; cursor: pointer; font-size: 1.4rem; transition: var(--transition); padding: 5px; }
+.notif-icon-wrapper:hover { transform: scale(1.1); }
+.notif-badge { position: absolute; top: -2px; right: -2px; background: #ef4444; color: #fff; font-size: 0.7rem; font-weight: 700; min-width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+
+.notif-dropdown { position: absolute; top: calc(100% + 15px); right: 0; background: #fff; width: 320px; border-radius: 16px; box-shadow: var(--shadow-lg); border: 1px solid var(--border-color); display: none; z-index: 2000; overflow: hidden; }
+.notif-dropdown.active { display: block; animation: fadeIn 0.2s ease-out; }
+
+.notif-dropdown-header { padding: 15px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background: #f8fafc; }
+.notif-dropdown-header h3 { font-size: 1rem; font-weight: 700; color: var(--primary); }
+.notif-dropdown-header button { background: none; border: none; color: var(--primary-light); font-size: 0.8rem; font-weight: 600; cursor: pointer; }
+.notif-dropdown-header button:hover { text-decoration: underline; }
+
+.notif-dropdown-list { max-height: 400px; overflow-y: auto; }
+.notif-item { padding: 15px 20px; border-bottom: 1px solid #f1f5f9; transition: var(--transition); cursor: pointer; display: flex; gap: 12px; }
+.notif-item:hover { background: #f8fafc; }
+.notif-item.unread { background: #eff6ff; }
+.notif-item.unread:hover { background: #dbeafe; }
+.notif-content p { font-size: 0.85rem; color: var(--text-dark); margin-bottom: 4px; line-height: 1.4; }
+.notif-time { font-size: 0.75rem; color: var(--text-muted); }
+.notif-empty { padding: 40px 20px; text-align: center; color: var(--text-muted); font-size: 0.9rem; }
+.notif-loading { padding: 20px; text-align: center; color: var(--text-muted); }
+
 @media (max-width: 992px) {
     .nav-links { display: none; }
     .menu-toggle { display: block; font-size: 1.5rem; cursor: pointer; color: var(--primary); }
@@ -107,6 +159,87 @@ document.addEventListener('DOMContentLoaded', function() {
 
         document.addEventListener('click', function() {
             profileDropdown.classList.remove('active');
+        });
+    }
+
+    const notifBtn = document.getElementById('notifBtn');
+    const notifDropdown = document.getElementById('notifDropdown');
+    const notifList = document.getElementById('notifList');
+
+    if (notifBtn && notifDropdown) {
+        notifBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            notifDropdown.classList.toggle('active');
+            if (notifDropdown.classList.contains('active')) {
+                loadNotifications();
+            }
+        });
+
+        document.addEventListener('click', function() {
+            notifDropdown.classList.remove('active');
+        });
+
+        notifDropdown.addEventListener('click', (e) => e.stopPropagation());
+    }
+
+    function loadNotifications() {
+        const base = '<?php echo $base; ?>';
+        fetch(base + 'get_notifications.php')
+            .then(res => res.json())
+            .then(data => {
+                if (data.length === 0) {
+                    notifList.innerHTML = '<div class="notif-empty">Aucune notification pour le moment.</div>';
+                    return;
+                }
+
+                notifList.innerHTML = data.map(n => `
+                    <div class="notif-item ${n.is_read == 0 ? 'unread' : ''}" onclick="markAsRead(${n.id}, this)">
+                        <div class="notif-content">
+                            <p>${n.message}</p>
+                            <span class="notif-time">${n.time_ago}</span>
+                        </div>
+                    </div>
+                `).join('');
+            });
+    }
+
+    window.markAsRead = function(id, element) {
+        const base = '<?php echo $base; ?>';
+        fetch(base + 'mark_notification_read.php?id=' + id)
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    element.classList.remove('unread');
+                    updateBadgeCount();
+                }
+            });
+    }
+
+    function updateBadgeCount() {
+        const badge = document.querySelector('.notif-badge');
+        if (badge) {
+            let count = parseInt(badge.textContent);
+            if (count > 1) {
+                badge.textContent = count - 1;
+            } else {
+                badge.remove();
+            }
+        }
+    }
+
+    const markAllReadBtn = document.getElementById('markAllRead');
+    if (markAllReadBtn) {
+        markAllReadBtn.addEventListener('click', () => {
+            const base = '<?php echo $base; ?>';
+            fetch(base + 'mark_notification_read.php?all=1')
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        document.querySelectorAll('.notif-item').forEach(i => i.classList.remove('unread'));
+                        const badge = document.querySelector('.notif-badge');
+                        if (badge) badge.remove();
+                    }
+                });
         });
     }
 });

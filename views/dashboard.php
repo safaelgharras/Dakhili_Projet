@@ -86,6 +86,46 @@ try {
                     </div>
                     <span class="q-arrow">→</span>
                 </a>
+
+                <a href="contests.php" class="quick-card">
+                    <div class="q-icon">🎓</div>
+                    <div class="q-info">
+                        <h3>Concours</h3>
+                        <p>Calendrier & Inscriptions</p>
+                    </div>
+                    <span class="q-arrow">→</span>
+                </a>
+            </div>
+            
+            <div class="contests-section" style="margin-bottom: 40px;">
+                <div class="section-header">
+                    <h2>🔥 Concours Importants</h2>
+                </div>
+                <div class="contest-grid">
+                    <?php
+                    try {
+                        $contestStmt = $pdo->query("SELECT c.*, i.name as institution_name FROM contests c JOIN institutions i ON c.institution_id = i.id WHERE c.is_featured = 1 LIMIT 3");
+                        $featuredContests = $contestStmt->fetchAll();
+                        
+                        foreach($featuredContests as $c): 
+                            $statusLabel = $c['status'] == 'open' ? 'Ouvert' : ($c['status'] == 'soon' ? 'Bientôt' : 'Fermé');
+                        ?>
+                            <div class="contest-card">
+                                <span class="contest-status status-<?php echo $c['status']; ?>"><?php echo $statusLabel; ?></span>
+                                <h4><?php echo htmlspecialchars($c['title']); ?></h4>
+                                <div class="contest-details">
+                                    <span class="contest-info">🏫 <?php echo htmlspecialchars($c['institution_name']); ?></span>
+                                    <span class="contest-info">📅 Exam: <?php echo date('d M Y', strtotime($c['exam_date'])); ?></span>
+                                    <span class="contest-info">⏳ Limite: <?php echo date('d M Y', strtotime($c['registration_deadline'])); ?></span>
+                                </div>
+                                <div class="contest-footer">
+                                    <a href="institution_detail.php?id=<?php echo $c['institution_id']; ?>" class="btn-details">Voir détails →</a>
+                                </div>
+                            </div>
+                        <?php endforeach;
+                    } catch (Exception $e) {}
+                    ?>
+                </div>
             </div>
 
             <?php if (count($upcomingDeadlines) > 0): ?>
@@ -115,20 +155,32 @@ try {
             <div class="sidebar-card promo-card">
                 <h3>Voulez-vous plus d'aide ?</h3>
                 <p>Nos experts en orientation sont là pour vous accompagner dans chaque étape de votre inscription.</p>
-                <button class="btn btn-white btn-full">Prendre RDV</button>
+                <a href="appointments.php" class="btn btn-white btn-full">Prendre RDV</a>
             </div>
 
             <div class="sidebar-card">
                 <h3>Notifications</h3>
                 <div class="notif-list">
-                    <div class="notif-item">
-                        <span class="n-dot"></span>
-                        <p>Nouvel établissement ajouté à Casablanca.</p>
-                    </div>
-                    <div class="notif-item">
-                        <span class="n-dot"></span>
-                        <p>Rappel : Concours ENSA dans 15 jours.</p>
-                    </div>
+                    <?php
+                    try {
+                        $dashNotifs = $pdo->prepare("SELECT * FROM notifications WHERE student_id = ? ORDER BY created_at DESC LIMIT 5");
+                        $dashNotifs->execute([$userId]);
+                        $notifs = $dashNotifs->fetchAll();
+                        
+                        if (count($notifs) > 0):
+                            foreach($notifs as $n): ?>
+                                <div class="notif-item <?php echo $n['is_read'] ? '' : 'unread-dot'; ?>">
+                                    <span class="n-dot"></span>
+                                    <p><?php echo htmlspecialchars($n['message']); ?></p>
+                                </div>
+                            <?php endforeach;
+                        else: ?>
+                            <p class="text-muted">Aucune notification.</p>
+                        <?php endif;
+                    } catch (Exception $e) {
+                        echo "<p>Erreur de chargement.</p>";
+                    }
+                    ?>
                 </div>
             </div>
         </aside>
