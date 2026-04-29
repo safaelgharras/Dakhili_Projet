@@ -39,6 +39,47 @@ $savedIds = [];
 if ($isLoggedIn) {
     $savedIds = $pdo->query("SELECT institution_id FROM saved_schools WHERE student_id = " . $_SESSION['user_id'])->fetchAll(PDO::FETCH_COLUMN);
 }
+
+function resolveInstitutionImagePath($institutionName, $dbImage = null) {
+    $name = trim((string) ($institutionName ?? ''));
+    $normalizedName = strtolower($name);
+
+    $candidates = [];
+    if (!empty($dbImage)) {
+        $candidates[] = (string) $dbImage;
+    }
+
+    if ($normalizedName === 'cpge fes' || $normalizedName === 'cpge fez') {
+        $candidates[] = 'CPGE Fez.jpg';
+    } elseif ($normalizedName === 'emsi casablanca') {
+        $candidates[] = 'EMSI Casablanca.webp';
+    } elseif ($normalizedName === 'eigsi casablanca') {
+        $candidates[] = 'EIGSI Casablanca.webp';
+    } elseif ($normalizedName === 'esca ecole de management') {
+        $candidates[] = 'ESCA Ecole de Management Casablanca.webp';
+    }
+
+    $candidates[] = $name . '.webp';
+    $candidates[] = $name . '.png';
+    $candidates[] = $name . '.jpg';
+    $candidates[] = 'default_school.jpg';
+
+    foreach ($candidates as $candidate) {
+        $candidate = trim((string) $candidate);
+        if ($candidate === '') {
+            continue;
+        }
+
+        if (file_exists(__DIR__ . '/../assets/images/' . $candidate)) {
+            return '../assets/images/' . $candidate;
+        }
+        if (file_exists(__DIR__ . '/../assets/images/institutions/' . $candidate)) {
+            return '../assets/images/institutions/' . $candidate;
+        }
+    }
+
+    return '../assets/images/default_school.jpg';
+}
 ?>
 
 <div class="institutions-layout">
@@ -110,18 +151,10 @@ if ($isLoggedIn) {
         <div class="cards-grid" id="resultsGrid">
             <?php foreach($institutions as $inst): ?>
                 <?php
-                    $instName = trim(strtolower($inst['name'] ?? ''));
-                    $imageFile = $inst['image'] ?? 'default_school.jpg';
-                    if ($instName === 'cpge fes' || $instName === 'cpge fez') {
-                        $imageFile = 'cpge-fes.png';
-                    } elseif ($instName === 'emsi casablanca') {
-                        $imageFile = 'emsi-casablanca.png';
-                    } elseif ($instName === 'eigsi casablanca') {
-                        $imageFile = 'eigsi-casablanca.png';
-                    }
+                    $imagePath = resolveInstitutionImagePath($inst['name'] ?? '', $inst['image'] ?? null);
                 ?>
                 <div class="card">
-                    <img src="../assets/images/institutions/<?php echo $imageFile; ?>" class="card-img" alt="<?php echo htmlspecialchars($inst['name']); ?>">
+                    <img src="<?php echo htmlspecialchars($imagePath); ?>" class="card-img" alt="<?php echo htmlspecialchars($inst['name']); ?>">
                     <div class="card-body">
                         <div class="card-tag"><?php echo htmlspecialchars($inst['type']); ?></div>
                         <h3><?php echo htmlspecialchars($inst['name']); ?></h3>
@@ -254,18 +287,10 @@ function renderResults(data) {
 
     resultsGrid.innerHTML = data.map(inst => {
         const isSaved = savedIds.includes(inst.id.toString()) || savedIds.includes(parseInt(inst.id));
-        const normalizedName = (inst.name || '').trim().toLowerCase();
-        let cardImage = inst.image || 'default_school.jpg';
-        if (normalizedName === 'cpge fes' || normalizedName === 'cpge fez') {
-            cardImage = 'cpge-fes.png';
-        } else if (normalizedName === 'emsi casablanca') {
-            cardImage = 'emsi-casablanca.png';
-        } else if (normalizedName === 'eigsi casablanca') {
-            cardImage = 'eigsi-casablanca.png';
-        }
+        const cardImageSrc = resolveCardImage(inst);
         return `
             <div class="card">
-                <img src="../assets/images/institutions/${cardImage}" class="card-img" alt="${inst.name}">
+                <img src="${cardImageSrc}" class="card-img" alt="${inst.name}">
                 <div class="card-body">
                     <div class="card-tag">${inst.type}</div>
                     <h3>${inst.name}</h3>
@@ -290,6 +315,63 @@ function renderResults(data) {
             </div>
         `;
     }).join('');
+}
+
+function resolveCardImage(inst) {
+    const name = (inst.name || '').trim();
+    const normalizedName = name.toLowerCase();
+
+    const exactNameToImage = {
+        'cpge fes': 'CPGE Fez.jpg',
+        'cpge fez': 'CPGE Fez.jpg',
+        'eigsi casablanca': 'EIGSI Casablanca.webp',
+        'emi rabat': 'EMI Rabat.webp',
+        'emsi casablanca': 'EMSI Casablanca.webp',
+        'encg agadir': 'ENCG Agadir.webp',
+        'encg kenitra': 'ENCG Kenitra.png',
+        'encg marrakech': 'ENCG Marrakech.webp',
+        'encg oujda': 'ENCG Oujda.webp',
+        'encg settat': 'ENCG Settat.webp',
+        'ens rabat': 'ENS Rabat.png',
+        'ensa fes': 'ENSA Fes.png',
+        'ensa kenitra': 'ENSA Kenitra.png',
+        'ensa marrakech': 'ENSA Marrakech.webp',
+        'ensa oujda': 'ENSA Oujda.png',
+        'ensa tanger': 'ENSA Tanger.png',
+        'enset mohammedia': 'ENSET Mohammedia.webp',
+        'esca ecole de management': 'ESCA Ecole de Management Casablanca.webp',
+        'esca ecole de management casablanca': 'ESCA Ecole de Management Casablanca.webp',
+        'est agadir': 'EST Agadir.png',
+        'est casablanca': 'EST Casablanca.png',
+        'est fes': 'EST Fes.png',
+        'est kenitra': 'EST Kenitra.webp',
+        'est laayoune': 'EST Laayoune.png',
+        'est oujda': 'EST Oujda.webp',
+        'fs beni mellal': 'FS Beni Mellal.png',
+        'fs casablanca': 'FS Casablanca.png',
+        'fs errachidia': 'FS Errachidia.png',
+        'fs meknes': 'FS Meknes.png',
+        'fs oujda': 'FS Oujda.png',
+        'fst al hoceima': 'FST Al Hoceima.jpg',
+        'fst mohammedia': 'FST Mohammedia.png',
+        'fst settat': 'FST Settat.png',
+        'fst tanger': 'FST Tanger.png',
+        'heci casablanca': 'HECI Casablanca.png',
+        'hem casablanca': 'HEM Casablanca.png',
+        'iga casablanca': 'IGA Casablanca.png',
+        'iscae casablanca': 'ISCAE Casablanca.png',
+        'isga marrakech': 'ISGA Marrakech.png'
+    };
+
+    if (exactNameToImage[normalizedName]) {
+        return `../assets/images/${exactNameToImage[normalizedName]}`;
+    }
+
+    if (inst.image) {
+        return `../assets/images/${inst.image}`;
+    }
+
+    return `../assets/images/${name}.webp`;
 }
 
 function toggleSave(id, btn) {
