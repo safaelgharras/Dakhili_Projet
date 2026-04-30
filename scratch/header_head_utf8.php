@@ -1,12 +1,10 @@
-<?php
+﻿<?php
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
 // Auto-migration check (100% Work Guarantee)
 require_once __DIR__ . "/../config/DataBase.php";
-require_once __DIR__ . "/lang_helper.php";
-
 try {
     $pdo->query("SELECT 1 FROM villes LIMIT 1");
 } catch (Exception $e) {
@@ -34,16 +32,12 @@ if (isset($_SESSION['user_id'])) {
 ?>
 
 <!DOCTYPE html>
-<html lang="<?php echo getLang(); ?>" dir="<?php echo getLang() === 'ar' ? 'rtl' : 'ltr'; ?>">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Maslaki — <?php echo isset($pageTitle) ? htmlspecialchars($pageTitle) : __('find_school'); ?></title>
+    <title>Maslaki ÔÇö <?php echo isset($pageTitle) ? htmlspecialchars($pageTitle) : 'Orientation'; ?></title>
     <link rel="stylesheet" href="<?php echo $base; ?>assets/css/style.css">
-    <script>
-        const savedTheme = localStorage.getItem('theme') || 'light';
-        document.documentElement.setAttribute('data-theme', savedTheme);
-    </script>
 </head>
 <body>
 
@@ -55,20 +49,21 @@ if (isset($_SESSION['user_id'])) {
             </a>
             
             <ul class="nav-links">
-                <li><a href="<?php echo $base; ?>index.php"><?php echo __('home'); ?></a></li>
-                <li><a href="<?php echo $base; ?>views/institutions.php"><?php echo __('institutions'); ?></a></li>
+                <li><a href="<?php echo $base; ?>index.php">Accueil</a></li>
+                <li><a href="<?php echo $base; ?>views/institutions.php">├ëtablissements</a></li>
                 <?php if (isset($_SESSION['user_id'])): ?>
-                    <li><a href="<?php echo $base; ?>views/ai_form.php" class="btn btn-accent"><?php echo __('ai_orientation'); ?> 🤖</a></li>
+                    <li><a href="<?php echo $base; ?>views/dashboard.php">Mon Profil</a></li>
+                    <li><a href="<?php echo $base; ?>views/ai_form.php" class="btn btn-accent">Orientation IA ­ƒñû</a></li>
                     <li class="notif-menu-item">
                         <div class="notif-icon-wrapper" id="notifBtn">
-                            <span class="notif-bell">🔔</span>
+                            <span class="notif-bell">­ƒöö</span>
                             <?php if ($unreadCount > 0): ?>
                                 <span class="notif-badge"><?php echo $unreadCount; ?></span>
                             <?php endif; ?>
                         </div>
                         <div class="notif-dropdown" id="notifDropdown">
                             <div class="notif-dropdown-header">
-                                <h3><?php echo __('notifications'); ?></h3>
+                                <h3>Notifications</h3>
                                 <button id="markAllRead">Tout marquer comme lu</button>
                             </div>
                             <div class="notif-dropdown-list" id="notifList">
@@ -78,45 +73,18 @@ if (isset($_SESSION['user_id'])) {
                         </div>
                     </li>
                     <li class="user-menu-item">
-                        <div class="user-profile-icon" id="profileBtn">👤</div>
+                        <div class="user-profile-icon" id="profileBtn">­ƒæñ</div>
                         <div class="profile-dropdown" id="profileDropdown">
-                            <a href="<?php echo $base; ?>views/dashboard.php" class="dropdown-link"><?php echo __('profile'); ?></a>
-                            <div class="dropdown-divider"></div>
-                            
-                            <div class="dropdown-section">
-                                <label>Apparence</label>
-                                <div class="theme-switch">
-                                    <button id="themeLightBtn" class="theme-switch-btn active">
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
-                                        <span>Clair</span>
-                                    </button>
-                                    <button id="themeDarkBtn" class="theme-switch-btn">
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
-                                        <span>Sombre</span>
-                                    </button>
-                                </div>
-                            </div>
-                            
-                            <div class="dropdown-section">
-                                <label>Langue</label>
-                                <div class="lang-selector">
-                                    <a href="?lang=fr" class="<?php echo getLang() == 'fr' ? 'active' : ''; ?>">FR</a>
-                                    <a href="?lang=en" class="<?php echo getLang() == 'en' ? 'active' : ''; ?>">EN</a>
-                                    <a href="?lang=ar" class="<?php echo getLang() == 'ar' ? 'active' : ''; ?>">AR</a>
-                                </div>
-                            </div>
-                            
-                            <div class="dropdown-divider"></div>
-                            <a href="<?php echo $base; ?>views/logout.php" class="dropdown-link logout-red"><?php echo __('logout'); ?></a>
+                            <a href="<?php echo $base; ?>views/logout.php" class="dropdown-link logout-red">D├®connexion</a>
                         </div>
                     </li>
                 <?php else: ?>
-                    <li><a href="<?php echo $base; ?>views/login.php"><?php echo __('login'); ?></a></li>
-                    <li><a href="<?php echo $base; ?>views/register.php" class="btn btn-accent"><?php echo __('register'); ?></a></li>
+                    <li><a href="<?php echo $base; ?>views/login.php">Connexion</a></li>
+                    <li><a href="<?php echo $base; ?>views/register.php" class="btn btn-accent">S'inscrire</a></li>
                 <?php endif; ?>
             </ul>
 
-            <div class="menu-toggle">☰</div>
+            <div class="menu-toggle">Ôÿ░</div>
         </div>
     </nav>
 </header>
@@ -128,11 +96,10 @@ if (isset($_SESSION['user_id'])) {
 .logo-box { background: var(--accent); color: #fff; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 10px; font-weight: 900; font-size: 1.4rem; box-shadow: 0 4px 10px rgba(255, 109, 0, 0.3); }
 .logo-text { font-size: 1.6rem; font-weight: 800; color: var(--primary-dark); letter-spacing: -1px; }
 
-.nav-links { display: flex; align-items: center; gap: 20px; list-style: none; margin-left: auto; margin-right: 0; }
+.nav-links { display: flex; align-items: center; gap: 35px; list-style: none; margin-left: auto; margin-right: 20px; }
 .nav-links a { text-decoration: none; color: var(--text-dark); font-weight: 600; font-size: 0.95rem; transition: var(--transition); }
 .nav-links a:hover { color: var(--accent); }
 
-.menu-toggle { display: none; } /* Hidden on desktop */
 .btn-accent { padding: 10px 20px !important; border-radius: 12px !important; }
 
 /* Profile Dropdown Styles */
@@ -140,33 +107,14 @@ if (isset($_SESSION['user_id'])) {
 .user-profile-icon { width: 40px; height: 40px; background: #f8fafc; border: 1.5px solid var(--border-color); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: var(--transition); font-size: 1.2rem; }
 .user-profile-icon:hover { border-color: var(--primary); background: #f1f5f9; }
 
-.profile-dropdown { position: absolute; top: calc(100% + 15px); right: 0; background: var(--white); min-width: 180px; border-radius: 12px; box-shadow: var(--shadow-lg); padding: 8px; display: none; z-index: 2000; border: 1px solid var(--border-color); }
+.profile-dropdown { position: absolute; top: calc(100% + 15px); right: 0; background: #fff; min-width: 180px; border-radius: 12px; box-shadow: var(--shadow-lg); padding: 8px; display: none; z-index: 2000; border: 1px solid var(--border-color); }
 .profile-dropdown.active { display: block; animation: fadeIn 0.2s ease-out; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
 .dropdown-link { display: block; padding: 10px 16px; border-radius: 8px; text-decoration: none; color: var(--text-dark); font-weight: 600; font-size: 0.9rem; transition: var(--transition); }
 .dropdown-link:hover { background: var(--bg-light); color: var(--primary); }
-[data-theme="dark"] .dropdown-link:hover { background: #334155; color: #fff; }
 .dropdown-link.logout-red { color: #e11d48; }
-.dropdown-link.logout-red:hover { background: rgba(225, 29, 72, 0.1); }
-
-.dropdown-divider { height: 1px; background: var(--border-color); margin: 8px 0; }
-.dropdown-section { padding: 5px 16px; margin-bottom: 5px; }
-.dropdown-section label { display: block; font-size: 0.8rem; color: var(--text-muted); font-weight: 700; margin-bottom: 6px; }
-.dropdown-btn { width: 100%; padding: 8px; background: var(--bg-light); border: 1px solid var(--border-color); border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 600; color: var(--text-dark); transition: var(--transition); }
-.dropdown-btn:hover { border-color: var(--primary); color: var(--primary); }
-
-.theme-switch { display: flex; background: #f1f5f9; border-radius: 8px; padding: 4px; gap: 4px; border: 1px solid var(--border-color); }
-[data-theme="dark"] .theme-switch { background: #0f172a; }
-.theme-switch-btn { flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 6px 12px; border: none; border-radius: 6px; background: transparent; color: var(--text-muted); font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease; }
-.theme-switch-btn:hover { color: var(--text-dark); }
-.theme-switch-btn.active { background: #fff; color: var(--primary); box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid rgba(0,0,0,0.05); }
-[data-theme="dark"] .theme-switch-btn.active { background: #1e293b; color: var(--text-dark); border-color: rgba(255,255,255,0.1); }
-
-.lang-selector { display: flex; gap: 5px; }
-.lang-selector a { flex: 1; text-align: center; padding: 6px; font-size: 0.85rem; font-weight: 600; border: 1px solid var(--border-color); border-radius: 6px; transition: var(--transition); text-decoration: none; color: var(--text-dark); }
-.lang-selector a:hover { border-color: var(--primary); }
-.lang-selector a.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+.dropdown-link.logout-red:hover { background: #fff1f2; }
 
 /* Notification Styles */
 .notif-menu-item { position: relative; list-style: none; margin-left: 20px; }
@@ -174,31 +122,28 @@ if (isset($_SESSION['user_id'])) {
 .notif-icon-wrapper:hover { transform: scale(1.1); }
 .notif-badge { position: absolute; top: -2px; right: -2px; background: #ef4444; color: #fff; font-size: 0.7rem; font-weight: 700; min-width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
 
-.notif-dropdown { position: absolute; top: calc(100% + 15px); right: 0; background: var(--white); width: 320px; border-radius: 16px; box-shadow: var(--shadow-lg); border: 1px solid var(--border-color); display: none; z-index: 2000; overflow: hidden; }
+.notif-dropdown { position: absolute; top: calc(100% + 15px); right: 0; background: #fff; width: 320px; border-radius: 16px; box-shadow: var(--shadow-lg); border: 1px solid var(--border-color); display: none; z-index: 2000; overflow: hidden; }
 .notif-dropdown.active { display: block; animation: fadeIn 0.2s ease-out; }
 
-.notif-dropdown-header { padding: 15px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background: var(--bg-light); }
+.notif-dropdown-header { padding: 15px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background: #f8fafc; }
 .notif-dropdown-header h3 { font-size: 1rem; font-weight: 700; color: var(--primary); }
 .notif-dropdown-header button { background: none; border: none; color: var(--primary-light); font-size: 0.8rem; font-weight: 600; cursor: pointer; }
 .notif-dropdown-header button:hover { text-decoration: underline; }
 
 .notif-dropdown-list { max-height: 400px; overflow-y: auto; }
-.notif-item { padding: 15px 20px; border-bottom: 1px solid var(--border-color); transition: var(--transition); cursor: pointer; display: flex; gap: 12px; }
-.notif-item:hover { background: var(--bg-light); }
-.notif-item.unread { background: rgba(59, 130, 246, 0.08); }
-.notif-item.unread:hover { background: rgba(59, 130, 246, 0.15); }
+.notif-item { padding: 15px 20px; border-bottom: 1px solid #f1f5f9; transition: var(--transition); cursor: pointer; display: flex; gap: 12px; }
+.notif-item:hover { background: #f8fafc; }
+.notif-item.unread { background: #eff6ff; }
+.notif-item.unread:hover { background: #dbeafe; }
 .notif-content p { font-size: 0.85rem; color: var(--text-dark); margin-bottom: 4px; line-height: 1.4; }
 .notif-time { font-size: 0.75rem; color: var(--text-muted); }
 .notif-empty { padding: 40px 20px; text-align: center; color: var(--text-muted); font-size: 0.9rem; }
 .notif-loading { padding: 20px; text-align: center; color: var(--text-muted); }
 
 @media (max-width: 992px) {
-    .nav-links { display: none; width: 100%; flex-direction: column; position: absolute; top: 85px; left: 0; background: var(--white); padding: 20px; box-shadow: 0 10px 15px rgba(0,0,0,0.1); border-bottom: 1px solid var(--border-color); z-index: 1000; gap: 15px; align-items: flex-start; }
-    .nav-links.mobile-active { display: flex; }
+    .nav-links { display: none; }
     .menu-toggle { display: block; font-size: 1.5rem; cursor: pointer; color: var(--primary); }
-    .user-menu-item, .notif-menu-item { margin-left: 0; }
 }
-
 </style>
 
 <script>
@@ -297,57 +242,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
         });
     }
-
-    const themeLightBtn = document.getElementById('themeLightBtn');
-    const themeDarkBtn = document.getElementById('themeDarkBtn');
-    
-    if (themeLightBtn && themeDarkBtn) {
-        const updateThemeUI = (theme) => {
-            if (theme === 'dark') {
-                themeDarkBtn.classList.add('active');
-                themeLightBtn.classList.remove('active');
-            } else {
-                themeLightBtn.classList.add('active');
-                themeDarkBtn.classList.remove('active');
-            }
-        };
-
-        const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
-        updateThemeUI(currentTheme);
-
-        themeLightBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            document.documentElement.setAttribute('data-theme', 'light');
-            localStorage.setItem('theme', 'light');
-            updateThemeUI('light');
-        });
-
-        themeDarkBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            document.documentElement.setAttribute('data-theme', 'dark');
-            localStorage.setItem('theme', 'dark');
-            updateThemeUI('dark');
-        });
-    }
-
-    if (profileBtn && profileDropdown) {
-        profileDropdown.addEventListener('click', (e) => e.stopPropagation());
-    }
-
-    const menuToggle = document.querySelector('.menu-toggle');
-    const navLinks = document.querySelector('.nav-links');
-    if (menuToggle && navLinks) {
-        menuToggle.addEventListener('click', (e) => {
-            e.stopPropagation();
-            navLinks.classList.toggle('mobile-active');
-        });
-    }
-
-    document.addEventListener('click', (e) => {
-        if (navLinks && navLinks.classList.contains('mobile-active') && !menuToggle.contains(e.target) && !navLinks.contains(e.target)) {
-            navLinks.classList.remove('mobile-active');
-        }
-    });
 });
 </script>
 

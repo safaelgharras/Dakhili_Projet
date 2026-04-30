@@ -30,8 +30,12 @@ if (!empty($catId)) {
 }
 
 if (!empty($type)) {
-    $sql .= " AND i.type = ?";
-    $params[] = $type;
+    if ($type === 'Public') {
+        $sql .= " AND i.type != 'Private'";
+    } else {
+        $sql .= " AND i.type = ?";
+        $params[] = $type;
+    }
 }
 
 $sql .= " ORDER BY i.is_popular DESC, i.name ASC";

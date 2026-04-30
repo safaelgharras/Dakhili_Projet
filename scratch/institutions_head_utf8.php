@@ -1,5 +1,5 @@
-<?php
-$pageTitle = "Établissements";
+﻿<?php
+$pageTitle = "├ëtablissements";
 require "../includes/header.php";
 require "../config/DataBase.php";
 
@@ -80,29 +80,15 @@ function resolveInstitutionImagePath($institutionName, $dbImage = null) {
 
     return '../assets/images/default_school.jpg';
 }
-
-function translateType($type) {
-    $map = [
-        'Engineering' => 'Ingénierie',
-        'Business' => 'Commerce',
-        'Science' => 'Sciences',
-        'Technical' => 'Technique',
-        'Preparatory' => 'Classes Prépa',
-        'Private' => 'Privé',
-        'Education' => 'Éducation',
-        'University' => 'Université'
-    ];
-    return $map[$type] ?? $type;
-}
 ?>
 
 <div class="institutions-layout">
     <?php if ($migrationNeeded): ?>
         <div class="migration-alert" style="grid-column: 1/-1; background: #fffbeb; border: 1px solid #fef3c7; color: #92400e; padding: 16px; border-radius: 12px; margin-bottom: 20px; display: flex; align-items: center; gap: 12px;">
-            <span>⚠️</span>
+            <span>ÔÜá´©Å</span>
             <div>
-                <strong>Mise à jour requise :</strong> De nouvelles fonctionnalités ont été ajoutées. 
-                <a href="../migrate.php" style="text-decoration: underline; font-weight: 700;">Cliquez ici pour mettre à jour votre base de données</a>.
+                <strong>Mise ├á jour requise :</strong> De nouvelles fonctionnalit├®s ont ├®t├® ajout├®es. 
+                <a href="../migrate.php" style="text-decoration: underline; font-weight: 700;">Cliquez ici pour mettre ├á jour votre base de donn├®es</a>.
             </div>
         </div>
     <?php endif; ?>
@@ -116,11 +102,11 @@ function translateType($type) {
 
         <div class="filter-group">
             <label>Recherche rapide</label>
-            <input type="text" id="searchInput" placeholder="Nom de l'école, filière..." class="search-input">
+            <input type="text" id="searchInput" placeholder="Nom de l'├®cole, fili├¿re..." class="search-input">
         </div>
 
         <div class="filter-group">
-            <label>📍 Ville</label>
+            <label>­ƒôì Ville</label>
             <select id="filterCity" class="filter-select">
                 <option value="">Toutes les villes</option>
                 <?php foreach($villes as $v): ?>
@@ -130,7 +116,7 @@ function translateType($type) {
         </div>
 
         <div class="filter-group">
-            <label>📚 Catégorie</label>
+            <label>­ƒôÜ Cat├®gorie</label>
             <select id="filterCategory" class="filter-select">
                 <option value="">Tous les domaines</option>
                 <?php foreach($categories as $c): ?>
@@ -140,59 +126,26 @@ function translateType($type) {
         </div>
 
         <div class="filter-group">
-            <label>🏢 Type</label>
+            <label>­ƒÅó Type</label>
             <select id="filterType" class="filter-select">
-                <option value="">Public & Privé</option>
+                <option value="">Public & Priv├®</option>
                 <?php foreach($types as $t): ?>
-                    <option value="<?php echo htmlspecialchars($t); ?>"><?php echo htmlspecialchars(translateType($t)); ?></option>
+                    <option value="<?php echo htmlspecialchars($t); ?>"><?php echo htmlspecialchars($t); ?></option>
                 <?php endforeach; ?>
             </select>
         </div>
 
         <button id="resetFilters" class="btn btn-outline btn-full" style="margin-top: 20px; border-color: var(--border-color); color: var(--text-muted);">
-            Réinitialiser les filtres
+            R├®initialiser les filtres
         </button>
     </aside>
 
 
     <!-- Results Main -->
     <main class="results-main">
-        <div class="results-header" style="display: block; margin-bottom: 30px;">
-            <div style="display: flex; justify-content: space-between; align-items: flex-end;">
-                <div>
-                    <h1 class="page-title" style="margin-bottom: 5px; border-bottom: none; padding-bottom: 0;">Découvrir les établissements</h1>
-                    <div style="width: 60px; height: 3px; background: var(--orange); margin-top: 8px; margin-bottom: 8px;"></div>
-                    <p id="resultsCount" class="results-count" style="margin-bottom: 0;"><?php echo count($institutions); ?> établissements trouvés</p>
-                </div>
-                <div class="tags-container">
-                    <select id="tagSelect" class="filter-select" style="width: auto; min-width: 220px; font-weight: 600;">
-                        <option value="">🏷️ Tous les tags</option>
-                        <optgroup label="Secteur">
-                            <option value="type_Public">Public</option>
-                            <option value="type_Private">Privé</option>
-                        </optgroup>
-                        <optgroup label="Types d'Établissements">
-                            <option value="type_University">Université</option>
-                            <option value="type_Preparatory">Classes Prépa</option>
-                            <option value="type_Engineering">Ingénierie</option>
-                            <option value="type_Business">Commerce</option>
-                            <option value="type_Science">Sciences</option>
-                            <option value="type_Technical">Technique</option>
-                            <option value="type_Education">Éducation</option>
-                        </optgroup>
-                        <optgroup label="Domaines & Filières">
-                            <option value="search_Informatique">Informatique</option>
-                            <option value="search_Finance">Finance</option>
-                            <option value="search_Marketing">Marketing</option>
-                            <option value="search_Droit">Droit</option>
-                            <option value="search_Médecine">Médecine</option>
-                            <option value="search_Architecture">Architecture</option>
-                            <option value="search_Data Science">Data Science</option>
-                            <option value="search_Gestion">Gestion</option>
-                        </optgroup>
-                    </select>
-                </div>
-            </div>
+        <div class="results-header">
+            <h1 class="page-title">D├®couvrir les ├®tablissements</h1>
+            <p id="resultsCount" class="results-count"><?php echo count($institutions); ?> ├®tablissements trouv├®s</p>
         </div>
 
         <div class="cards-grid" id="resultsGrid">
@@ -203,23 +156,23 @@ function translateType($type) {
                 <div class="card">
                     <img src="<?php echo htmlspecialchars($imagePath); ?>" class="card-img" alt="<?php echo htmlspecialchars($inst['name']); ?>">
                     <div class="card-body">
-                        <div class="badge"><?php echo htmlspecialchars(translateType($inst['type'])); ?></div>
+                        <div class="card-tag"><?php echo htmlspecialchars($inst['type']); ?></div>
                         <h3><?php echo htmlspecialchars($inst['name']); ?></h3>
-                        <p class="school-location">📍 <?php echo htmlspecialchars($inst['city'] ?? 'Maroc'); ?></p>
+                        <p class="school-location">­ƒôì <?php echo htmlspecialchars($inst['city'] ?? 'Maroc'); ?></p>
                         
                         <div class="card-info-row">
-                            <span class="info-item">🎓 <?php echo htmlspecialchars($inst['diplome'] ?? 'Diplôme'); ?></span>
-                            <span class="info-item">⏳ <?php echo htmlspecialchars($inst['duree_etudes'] ?? '--'); ?></span>
+                            <span class="info-item">­ƒÄô <?php echo htmlspecialchars($inst['diplome'] ?? 'Dipl├┤me'); ?></span>
+                            <span class="info-item">ÔÅ│ <?php echo htmlspecialchars($inst['duree_etudes'] ?? '--'); ?></span>
                         </div>
 
                         <div class="card-footer">
                             <span class="seuil">Seuil: <strong><?php echo $inst['seuil'] ?? $inst['min_average'] ?? '--'; ?></strong></span>
                             <div class="card-actions">
-                                <a href="institution_detail.php?id=<?php echo $inst['id']; ?>" class="btn-link">Détails →</a>
+                                <a href="institution_detail.php?id=<?php echo $inst['id']; ?>" class="btn-link">D├®tails ÔåÆ</a>
                                 <?php if ($isLoggedIn): ?>
                                     <button class="btn-icon-save <?php echo in_array($inst['id'], $savedIds) ? 'active' : ''; ?>" 
                                             onclick="toggleSave(<?php echo $inst['id']; ?>, this)">
-                                        ❤
+                                        ÔØñ
                                     </button>
                                 <?php endif; ?>
                             </div>
@@ -232,8 +185,8 @@ function translateType($type) {
 </div>
 
 <style>
-.institutions-layout { display: grid; grid-template-columns: 320px 1fr; gap: 40px; padding: 40px 0; align-items: start; }
-.filter-sidebar { background: var(--white); padding: 30px; border-radius: 24px; box-shadow: var(--shadow-md); height: fit-content; position: relative; border: 1px solid var(--border-color); }
+.institutions-layout { display: grid; grid-template-columns: 320px 1fr; gap: 40px; padding: 40px 0; }
+.filter-sidebar { background: #fff; padding: 30px; border-radius: 24px; box-shadow: var(--shadow-md); height: fit-content; position: sticky; top: 120px; border: 1px solid var(--border-color); }
 .sidebar-header h3 { font-size: 1.3rem; font-weight: 800; color: var(--primary); margin-bottom: 25px; border-bottom: 2px solid var(--bg-light); padding-bottom: 15px; }
 
 .filter-group { margin-bottom: 25px; }
@@ -241,9 +194,9 @@ function translateType($type) {
 .filter-select, .search-input { width: 100%; padding: 14px 18px; border-radius: 12px; border: 1.5px solid var(--border-color); background: #f8fafc; font-size: 0.95rem; transition: var(--transition); color: var(--text-dark); }
 .filter-select:focus, .search-input:focus { border-color: var(--primary); background: #fff; outline: none; box-shadow: 0 0 0 4px rgba(30, 58, 138, 0.1); }
 
-.results-header { margin-bottom: 30px; }
+.results-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
 .results-header h2 { font-size: 1.8rem; font-weight: 800; color: var(--primary-dark); }
-.results-count { color: var(--text-muted); font-weight: 600; font-size: 0.95rem; }
+.results-count { color: var(--text-muted); font-weight: 600; }
 
 .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 30px; }
 .institutions-layout .card-img {
@@ -290,16 +243,6 @@ function translateType($type) {
     color: #e11d48;
 }
 
-.tag-chip {
-    display: none;
-}
-
-[data-theme="dark"] .search-input,
-[data-theme="dark"] .filter-select {
-    background: #0b1121;
-    color: var(--text-dark);
-}
-
 @media (max-width: 992px) {
     .institutions-layout {
         grid-template-columns: 1fr;
@@ -316,8 +259,6 @@ const resultsGrid = document.getElementById('resultsGrid');
 const resultsCount = document.getElementById('resultsCount');
 const resetBtn = document.getElementById('resetFilters');
 
-const tagSelect = document.getElementById('tagSelect');
-
 let debounceTimer;
 
 const isLoggedIn = <?php echo $isLoggedIn ? 'true' : 'false'; ?>;
@@ -325,46 +266,22 @@ let savedIds = <?php echo json_encode($savedIds); ?>;
 
 function doSearch() {
     const params = new URLSearchParams();
-    let searchVal = searchInput.value;
-    
-    if (tagSelect && tagSelect.value) {
-        if (tagSelect.value.startsWith('type_')) {
-            params.set('type', tagSelect.value.replace('type_', ''));
-        } else if (tagSelect.value.startsWith('search_')) {
-            searchVal += ' ' + tagSelect.value.replace('search_', '');
-        }
-    }
-
-    if (searchVal.trim()) params.set('search', searchVal.trim());
+    if (searchInput.value) params.set('search', searchInput.value);
     if (filterCity.value) params.set('city_id', filterCity.value);
     if (filterCategory.value) params.set('cat_id', filterCategory.value);
-    if (filterType.value && !params.has('type')) params.set('type', filterType.value);
+    if (filterType.value) params.set('type', filterType.value);
 
     fetch('../search_ajax.php?' + params.toString())
         .then(res => res.json())
         .then(data => {
-            resultsCount.textContent = data.length + ' établissements trouvés';
+            resultsCount.textContent = data.length + ' ├®tablissements trouv├®s';
             renderResults(data);
         });
 }
 
-function translateType(type) {
-    const map = {
-        'Engineering': 'Ingénierie',
-        'Business': 'Commerce',
-        'Science': 'Sciences',
-        'Technical': 'Technique',
-        'Preparatory': 'Classes Prépa',
-        'Private': 'Privé',
-        'Education': 'Éducation',
-        'University': 'Université'
-    };
-    return map[type] || type;
-}
-
 function renderResults(data) {
     if (data.length === 0) {
-        resultsGrid.innerHTML = '<div class="empty-state">Aucun établissement ne correspond à vos critères.</div>';
+        resultsGrid.innerHTML = '<div class="empty-state">Aucun ├®tablissement ne correspond ├á vos crit├¿res.</div>';
         return;
     }
 
@@ -375,21 +292,21 @@ function renderResults(data) {
             <div class="card">
                 <img src="${cardImageSrc}" class="card-img" alt="${inst.name}">
                 <div class="card-body">
-                    <div class="badge">${translateType(inst.type)}</div>
+                    <div class="card-tag">${inst.type}</div>
                     <h3>${inst.name}</h3>
-                    <p class="school-location">📍 ${inst.city || 'Maroc'}</p>
+                    <p class="school-location">­ƒôì ${inst.city || 'Maroc'}</p>
                     <div class="card-info-row">
-                        <span>🎓 ${inst.diplome || 'Diplôme'}</span>
-                        <span>⏳ ${inst.duree_etudes || '--'}</span>
+                        <span>­ƒÄô ${inst.diplome || 'Dipl├┤me'}</span>
+                        <span>ÔÅ│ ${inst.duree_etudes || '--'}</span>
                     </div>
                     <div class="card-footer">
                         <span class="seuil">Seuil: <strong>${inst.seuil || inst.min_average || '--'}</strong></span>
                         <div class="card-actions">
-                            <a href="institution_detail.php?id=${inst.id}" class="btn-link">Détails →</a>
+                            <a href="institution_detail.php?id=${inst.id}" class="btn-link">D├®tails ÔåÆ</a>
                             ${isLoggedIn ? `
                                 <button class="btn-icon-save ${isSaved ? 'active' : ''}" 
                                         onclick="toggleSave(${inst.id}, this)">
-                                    ❤
+                                    ÔØñ
                                 </button>
                             ` : ''}
                         </div>
@@ -479,21 +396,15 @@ searchInput.addEventListener('input', () => {
     debounceTimer = setTimeout(doSearch, 300);
 });
 
-[filterCity, filterCategory, filterType, tagSelect].forEach(el => {
-    if (el) el.addEventListener('change', doSearch);
-});
+[filterCity, filterCategory, filterType].forEach(el => el.addEventListener('change', doSearch));
 
-if (resetBtn) {
-    resetBtn.addEventListener('click', () => {
-        searchInput.value = '';
-        filterCity.value = '';
-        filterCategory.value = '';
-        filterType.value = '';
-        if (tagSelect) tagSelect.value = '';
-        
-        doSearch();
-    });
-}
+resetBtn.addEventListener('click', () => {
+    searchInput.value = '';
+    filterCity.value = '';
+    filterCategory.value = '';
+    filterType.value = '';
+    doSearch();
+});
 </script>
 
 <?php require "../includes/footer.php"; ?>
