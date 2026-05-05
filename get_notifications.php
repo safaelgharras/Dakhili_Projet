@@ -3,6 +3,7 @@ session_start();
 require "config/DataBase.php";
 
 if (!isset($_SESSION["user_id"])) {
+    header('Content-Type: application/json');
     echo json_encode([]);
     exit();
 }
@@ -14,12 +15,12 @@ function time_ago($timestamp) {
     $current_time = time();
     $time_difference = $current_time - $time_ago;
     $seconds = $time_difference;
-    $minutes      = round($seconds / 60);           // value 60 is seconds
-    $hours           = round($seconds / 3600);           //value 3600 is 60 minutes * 60 sec
-    $days          = round($seconds / 86400);          //86400 = 24 * 60 * 60;
-    $weeks          = round($seconds / 604800);          // 7*24*60*60;
-    $months          = round($seconds / 2629440);     //((365+365+365+365+366)/5/12)*24*60*60
-    $years          = round($seconds / 31553280);     //(365+365+365+365+366)/5 * 24 * 60 * 60
+    $minutes      = round($seconds / 60);
+    $hours           = round($seconds / 3600);
+    $days          = round($seconds / 84600);
+    $weeks          = round($seconds / 604800);
+    $months          = round($seconds / 2629440);
+    $years          = round($seconds / 31553280);
 
     if($seconds <= 60) {
         return "À l'instant";
@@ -39,17 +40,37 @@ function time_ago($timestamp) {
 }
 
 try {
-    $stmt = $pdo->prepare("SELECT * FROM notifications WHERE student_id = ? ORDER BY created_at DESC LIMIT 20");
-    $stmt->execute([$userId]);
+    $sql = "SELECT n.*, 
+                   COALESCE(un.is_read, 0) as is_read
+            FROM notifications n
+            LEFT JOIN user_notifications un ON n.id = un.notification_id AND un.user_id = ?
+            WHERE (n.is_global = 1 OR n.target_user_id = ?)
+            AND (un.is_deleted IS NULL OR un.is_deleted = 0)
+            ORDER BY n.created_at DESC LIMIT 50";
+            
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([$userId, $userId]);
     $notifications = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     foreach ($notifications as &$n) {
         $n['time_ago'] = time_ago($n['created_at']);
+        // Add icon based on type
+        switch($n['type']) {
+            case 'system': $n['icon'] = '⚙️'; break;
+            case 'school': $n['icon'] = '🏫'; break;
+            case 'filiere': $n['icon'] = '🎓'; break;
+            case 'announcement': $n['icon'] = '📢'; break;
+            case 'maintenance': $n['icon'] = '🛠️'; break;
+            case 'orientation': $n['icon'] = '🧭'; break;
+            case 'deadline': $n['icon'] = '⏰'; break;
+            default: $n['icon'] = '🔔';
+        }
     }
 
     header('Content-Type: application/json');
     echo json_encode($notifications);
 } catch (Exception $e) {
-    echo json_encode([]);
+    header('Content-Type: application/json');
+    echo json_encode(["error" => $e->getMessage()]);
 }
 ?>

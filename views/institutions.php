@@ -18,6 +18,7 @@ try {
 $types = [];
 try {
     $types = $pdo->query("SELECT DISTINCT type FROM institutions WHERE type IS NOT NULL ORDER BY type")->fetchAll(PDO::FETCH_COLUMN);
+    $bac_types = $pdo->query("SELECT * FROM bac_types ORDER BY nom ASC")->fetchAll();
 } catch (Exception $e) {}
 
 $isLoggedIn = isset($_SESSION['user_id']);
@@ -32,6 +33,10 @@ try {
     $sql .= " ORDER BY name ASC";
 }
 $institutions = $pdo->query($sql)->fetchAll();
+foreach ($institutions as &$inst) {
+    $inst['name'] = getLocalizedDbField($inst, 'name');
+    $inst['description'] = getLocalizedDbField($inst, 'description');
+}
 
 
 // Get saved IDs
@@ -135,6 +140,23 @@ function translateType($type) {
                 <option value="">Tous les domaines</option>
                 <?php foreach($categories as $c): ?>
                     <option value="<?php echo $c['id']; ?>"><?php echo htmlspecialchars($c['nom']); ?></option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+
+        <div class="filter-group" id="domainGroup" style="display:none;">
+            <label>🔍 Domaine</label>
+            <select id="filterDomain" class="filter-select">
+                <option value="">Tous les domaines</option>
+            </select>
+        </div>
+
+        <div class="filter-group">
+            <label>🎓 Type de Bac</label>
+            <select id="filterBac" class="filter-select">
+                <option value="">Tous les types de Bac</option>
+                <?php foreach($bac_types as $bt): ?>
+                    <option value="<?php echo $bt['id']; ?>"><?php echo htmlspecialchars($bt['nom']); ?> (<?php echo $bt['code']; ?>)</option>
                 <?php endforeach; ?>
             </select>
         </div>
@@ -311,6 +333,9 @@ function translateType($type) {
 const searchInput = document.getElementById('searchInput');
 const filterCity = document.getElementById('filterCity');
 const filterCategory = document.getElementById('filterCategory');
+const filterDomain = document.getElementById('filterDomain');
+const domainGroup = document.getElementById('domainGroup');
+const filterBac = document.getElementById('filterBac');
 const filterType = document.getElementById('filterType');
 const resultsGrid = document.getElementById('resultsGrid');
 const resultsCount = document.getElementById('resultsCount');
@@ -338,6 +363,8 @@ function doSearch() {
     if (searchVal.trim()) params.set('search', searchVal.trim());
     if (filterCity.value) params.set('city_id', filterCity.value);
     if (filterCategory.value) params.set('cat_id', filterCategory.value);
+    if (filterDomain.value) params.set('domain_id', filterDomain.value);
+    if (filterBac.value) params.set('bac_id', filterBac.value);
     if (filterType.value && !params.has('type')) params.set('type', filterType.value);
 
     fetch('../search_ajax.php?' + params.toString())
@@ -458,7 +485,11 @@ function resolveCardImage(inst) {
 }
 
 function toggleSave(id, btn) {
-    fetch(`../save_school.php?id=${id}`)
+    fetch(`../save_school.php?id=${id}`, {
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
         .then(res => res.json())
         .then(data => {
             if (data.status === 'success') {
@@ -479,15 +510,58 @@ searchInput.addEventListener('input', () => {
     debounceTimer = setTimeout(doSearch, 300);
 });
 
-[filterCity, filterCategory, filterType, tagSelect].forEach(el => {
+[filterCity, filterCategory, filterDomain, filterBac, filterType, tagSelect].forEach(el => {
     if (el) el.addEventListener('change', doSearch);
 });
+
+filterCategory.addEventListener('change', function() {
+    const catId = this.value;
+    if (catId) {
+        fetch('../get_domains.php?cat_id=' + catId)
+            .then(res => res.json())
+            .then(data => {
+                filterDomain.innerHTML = '<option value="">Tous les domaines</option>';
+                data.forEach(d => {
+                    filterDomain.innerHTML += `<option value="${d.id}">${d.nom}</option>`;
+                });
+                domainGroup.style.display = 'block';
+            });
+    } else {
+        domainGroup.style.display = 'none';
+        filterDomain.value = '';
+    }
+});
+
+// Initialize from URL
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.has('cat_id')) {
+    filterCategory.value = urlParams.get('cat_id');
+    // Trigger category change to load domains
+    const event = new Event('change');
+    filterCategory.dispatchEvent(event);
+    
+    // If domain_id is also present, we need to wait for domains to load
+    if (urlParams.has('domain_id')) {
+        const domainId = urlParams.get('domain_id');
+        setTimeout(() => {
+            filterDomain.value = domainId;
+            doSearch();
+        }, 500);
+    } else {
+        doSearch();
+    }
+} else {
+    doSearch();
+}
 
 if (resetBtn) {
     resetBtn.addEventListener('click', () => {
         searchInput.value = '';
         filterCity.value = '';
         filterCategory.value = '';
+        filterDomain.value = '';
+        domainGroup.style.display = 'none';
+        filterBac.value = '';
         filterType.value = '';
         if (tagSelect) tagSelect.value = '';
         

@@ -29,4 +29,15 @@ function getLang() {
 function isRTL() {
     return getLang() === 'ar';
 }
+
+function getLocalizedDbField($row, $field) {
+    global $currentLang;
+    if ($currentLang === 'ar' && !empty($row[$field . '_ar'])) {
+        return $row[$field . '_ar'];
+    }
+    if ($currentLang === 'en' && !empty($row[$field . '_en'])) {
+        return $row[$field . '_en'];
+    }
+    return $row[$field] ?? '';
+}
 ?>

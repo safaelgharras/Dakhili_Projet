@@ -27,19 +27,35 @@ $stmt = $pdo->prepare($sql);
 $stmt->execute([$id]);
 $inst = $stmt->fetch();
 
-
 if (!$inst) {
     header("Location: institutions.php?error=École introuvable");
     exit();
 }
 
-// Get filieres
-$filiereSql = "SELECT f.* FROM filieres f 
+// Get filieres with their domains
+$filiereSql = "SELECT f.*, d.nom as domain_nom 
+               FROM filieres f 
                JOIN institution_filieres ifil ON f.id = ifil.filiere_id 
+               LEFT JOIN domains d ON f.domain_id = d.id
                WHERE ifil.institution_id = ?";
 $filiereStmt = $pdo->prepare($filiereSql);
 $filiereStmt->execute([$id]);
 $filieres = $filiereStmt->fetchAll();
+
+// Get bac requirements
+$bacSql = "SELECT bt.*, ibt.min_grade 
+           FROM bac_types bt 
+           JOIN institution_bac_types ibt ON bt.id = ibt.bac_type_id 
+           WHERE ibt.institution_id = ?";
+$bacStmt = $pdo->prepare($bacSql);
+$bacStmt->execute([$id]);
+$bac_requirements = $bacStmt->fetchAll();
+
+// Get gallery images
+$imgSql = "SELECT * FROM institution_images WHERE institution_id = ? ORDER BY is_main DESC";
+$imgStmt = $pdo->prepare($imgSql);
+$imgStmt->execute([$id]);
+$images = $imgStmt->fetchAll();
 
 // Get approved reviews
 $reviewSql = "SELECT reviews.*, students.name AS author_name 
@@ -50,14 +66,43 @@ $reviewSql = "SELECT reviews.*, students.name AS author_name
 $reviewStmt = $pdo->prepare($reviewSql);
 $reviewStmt->execute([$id]);
 $reviews = $reviewStmt->fetchAll();
+
+function translateType($type) {
+    $map = [
+        'Engineering' => 'Ingénierie',
+        'Business' => 'Commerce',
+        'Science' => 'Sciences',
+        'Technical' => 'Technique',
+        'Preparatory' => 'Classes Prépa',
+        'Private' => 'Privé',
+        'Education' => 'Éducation',
+        'University' => 'Université'
+    ];
+    return $map[$type] ?? $type;
+}
+
+function resolveDetailImage($path, $name) {
+    if (empty($path) || $path === 'default_school.jpg') {
+        // Try specific naming convention
+        $candidates = [$name . ".webp", $name . ".png", $name . ".jpg"];
+        foreach ($candidates as $c) {
+            if (file_exists("../assets/images/" . $c)) return "../assets/images/" . $c;
+        }
+        return "../assets/images/default_school.jpg";
+    }
+    if (file_exists("../assets/images/" . $path)) return "../assets/images/" . $path;
+    return "../assets/images/default_school.jpg";
+}
+
+$mainImage = count($images) > 0 ? resolveDetailImage($images[0]['image_path'], $inst['name']) : resolveDetailImage($inst['image'], $inst['name']);
 ?>
 
 <div class="detail-container">
     <div class="detail-hero">
-        <img src="../assets/images/institutions/<?php echo $inst['image'] ?? 'default_school.jpg'; ?>" alt="<?php echo htmlspecialchars($inst['name']); ?>" class="hero-bg">
+        <img src="<?php echo $mainImage; ?>" alt="<?php echo htmlspecialchars($inst['name']); ?>" class="hero-bg">
         <div class="hero-overlay">
             <div class="hero-text">
-                <span class="type-badge"><?php echo htmlspecialchars($inst['type']); ?></span>
+                <span class="type-badge"><?php echo htmlspecialchars(translateType($inst['type'])); ?></span>
                 <h1><?php echo htmlspecialchars($inst['name']); ?></h1>
                 <p>📍 <?php echo htmlspecialchars($inst['ville_nom'] ?? $inst['city']); ?> — Maroc</p>
             </div>
@@ -71,14 +116,32 @@ $reviews = $reviewStmt->fetchAll();
                 <p class="description"><?php echo nl2br(htmlspecialchars($inst['description'])); ?></p>
             </section>
 
+            <?php if (count($images) > 1): ?>
+            <section class="info-card">
+                <h2>Galerie Photos</h2>
+                <div class="image-gallery">
+                    <?php foreach($images as $img): ?>
+                        <div class="gallery-item">
+                            <img src="<?php echo resolveDetailImage($img['image_path'], ''); ?>" alt="Gallery Image">
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            </section>
+            <?php endif; ?>
+
             <section class="info-card">
                 <h2>Filières disponibles</h2>
                 <div class="filieres-list">
                     <?php if (count($filieres) > 0): ?>
                         <?php foreach($filieres as $f): ?>
                             <div class="filiere-item">
-                                <h3><?php echo htmlspecialchars($f['nom']); ?></h3>
-                                <p><?php echo htmlspecialchars($f['description']); ?></p>
+                                <div class="filiere-header">
+                                    <h3><?php echo htmlspecialchars($f['nom']); ?></h3>
+                                    <?php if ($f['domain_nom']): ?>
+                                        <span class="domain-tag"><?php echo htmlspecialchars($f['domain_nom']); ?></span>
+                                    <?php endif; ?>
+                                </div>
+                                <p><?php echo htmlspecialchars($f['description'] ?? 'Aucune description disponible.'); ?></p>
                             </div>
                         <?php endforeach; ?>
                     <?php else: ?>
@@ -120,9 +183,22 @@ $reviews = $reviewStmt->fetchAll();
                 <h3>Informations Admission</h3>
                 <ul class="info-list">
                     <li>
-                        <strong>Seuil d'accès:</strong>
-                        <span><?php echo $inst['seuil'] ?? '--'; ?> / 20</span>
+                        <strong>Seuil d'accès (Général):</strong>
+                        <span><?php echo $inst['seuil'] ?? $inst['min_average'] ?? '--'; ?> / 20</span>
                     </li>
+                    <?php if (count($bac_requirements) > 0): ?>
+                    <li>
+                        <strong>Seuils par type de Bac:</strong>
+                        <div class="bac-req-list">
+                            <?php foreach($bac_requirements as $bac): ?>
+                                <div class="bac-req-item">
+                                    <span class="bac-code"><?php echo htmlspecialchars($bac['code']); ?></span>
+                                    <span class="bac-min"><?php echo $bac['min_grade']; ?></span>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    </li>
+                    <?php endif; ?>
                     <li>
                         <strong>Diplôme délivré:</strong>
                         <span><?php echo htmlspecialchars($inst['diplome'] ?? 'Non spécifié'); ?></span>
@@ -165,11 +241,21 @@ $reviews = $reviewStmt->fetchAll();
 .info-card { background: var(--white); padding: 30px; border-radius: var(--radius-md); box-shadow: var(--shadow-md); margin-bottom: 30px; }
 .info-card h2 { color: var(--primary); margin-bottom: 20px; font-size: 1.4rem; border-bottom: 2px solid var(--border-color); padding-bottom: 10px; }
 
+.image-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; margin-top: 20px; }
+.gallery-item img { width: 100%; height: 120px; object-fit: cover; border-radius: 12px; cursor: pointer; transition: 0.3s; border: 2px solid transparent; }
+.gallery-item img:hover { transform: translateY(-5px); border-color: var(--accent); }
+
 .filieres-list { display: grid; gap: 15px; }
 .filiere-item { padding: 15px; border: 1px solid var(--border-color); border-radius: var(--radius-md); transition: var(--transition); }
-.filiere-item:hover { border-color: var(--accent); background: rgba(255,109,0,0.02); }
-.filiere-item h3 { font-size: 1rem; color: var(--primary); margin-bottom: 5px; }
-.filiere-item p { font-size: 0.85rem; color: var(--text-muted); }
+.filiere-item:hover { border-color: var(--accent); background: rgba(var(--primary-rgb), 0.02); }
+.filiere-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+.filiere-item h3 { font-size: 1.1rem; color: var(--primary); margin: 0; }
+.domain-tag { font-size: 0.75rem; background: rgba(var(--primary-rgb), 0.1); color: var(--primary); padding: 2px 8px; border-radius: 4px; }
+.filiere-item p { font-size: 0.9rem; color: var(--text-muted); line-height: 1.5; }
+
+.bac-req-list { display: grid; gap: 8px; margin-top: 10px; }
+.bac-req-item { display: flex; justify-content: space-between; background: rgba(255,255,255,0.1); padding: 5px 12px; border-radius: 6px; font-size: 0.9rem; }
+.bac-code { font-weight: 700; color: var(--accent); }
 
 .detail-sidebar .sidebar-card { background: var(--primary); color: #fff; padding: 30px; border-radius: var(--radius-md); box-shadow: var(--shadow-lg); position: sticky; top: 100px; }
 .sidebar-card h3 { margin-bottom: 20px; font-size: 1.2rem; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 10px; }
@@ -183,6 +269,9 @@ $reviews = $reviewStmt->fetchAll();
 .btn-accent { background: var(--accent); color: #fff; }
 .btn-outline { border: 1.5px solid #fff; background: transparent; color: #fff; }
 .btn-outline:hover { background: #fff; color: var(--primary); }
+
+[data-theme="dark"] .info-card { background: #161e31; }
+[data-theme="dark"] .filiere-item { border-color: #2a354f; }
 
 @media (max-width: 992px) {
     .detail-grid { grid-template-columns: 1fr; }

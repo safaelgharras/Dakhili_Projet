@@ -4,11 +4,15 @@ require "config/DataBase.php";
 $search = isset($_GET["search"]) ? trim($_GET["search"]) : "";
 $cityId = isset($_GET["city_id"]) ? trim($_GET["city_id"]) : "";
 $catId = isset($_GET["cat_id"]) ? trim($_GET["cat_id"]) : "";
+$domainId = isset($_GET["domain_id"]) ? trim($_GET["domain_id"]) : "";
+$bacId = isset($_GET["bac_id"]) ? trim($_GET["bac_id"]) : "";
 $type = isset($_GET["type"]) ? trim($_GET["type"]) : "";
 
 $sql = "SELECT DISTINCT i.* FROM institutions i 
         LEFT JOIN institution_filieres ifil ON i.id = ifil.institution_id
         LEFT JOIN filieres f ON ifil.filiere_id = f.id
+        LEFT JOIN domains d ON f.domain_id = d.id
+        LEFT JOIN institution_bac_types ibt ON i.id = ibt.institution_id
         WHERE 1=1";
 $params = [];
 
@@ -25,8 +29,18 @@ if (!empty($cityId)) {
 }
 
 if (!empty($catId)) {
-    $sql .= " AND f.categorie_id = ?";
+    $sql .= " AND d.categorie_id = ?";
     $params[] = $catId;
+}
+
+if (!empty($domainId)) {
+    $sql .= " AND f.domain_id = ?";
+    $params[] = $domainId;
+}
+
+if (!empty($bacId)) {
+    $sql .= " AND ibt.bac_type_id = ?";
+    $params[] = $bacId;
 }
 
 if (!empty($type)) {
@@ -43,6 +57,13 @@ $sql .= " ORDER BY i.is_popular DESC, i.name ASC";
 $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
 $institutions = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+require_once "includes/lang_helper.php";
+foreach ($institutions as &$inst) {
+    $inst['name'] = getLocalizedDbField($inst, 'name');
+    $inst['description'] = getLocalizedDbField($inst, 'description');
+}
+
 
 header("Content-Type: application/json");
 echo json_encode($institutions);
